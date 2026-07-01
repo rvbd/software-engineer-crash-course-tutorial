@@ -2369,6 +2369,279 @@ exit;`)}${callout("Setelah mengirim redirect, gunakan <code>exit</code> supaya k
 +-- security-lab/`)
   },
   {
+    className: "chapter",
+    html: `<p class="kicker">Level 2 Bonus</p><h2>Styling Website</h2><p>Setelah aplikasi bekerja, kita naik level: membuat tampilannya lebih rapi, nyaman dibaca, dan terasa seperti website resep sungguhan.</p>${tags(["CSS variables", "layout", "cards", "forms", "admin table", "responsive"])}`
+  },
+  {
+    title: "Sebelum Styling",
+    html: `${list([
+      "fitur sudah jalan",
+      "database sudah terhubung",
+      "register, login, submit resep, dan admin approval sudah bisa dites",
+      "tapi tampilan masih terasa polos"
+    ])}${callout("Styling adalah second pass. Jangan membuat tampilan cantik sebelum alur utama bisa bekerja.")}`
+  },
+  {
+    title: "Arah Visual: Clean Recipe App",
+    html: `${table(["Bagian", "Keputusan"], [
+      ["Warna", "Hangat, bersih, tidak terlalu ramai."],
+      ["Layout", "Lebar konten nyaman dibaca, card rapi, jarak konsisten."],
+      ["Admin", "Lebih utilitarian: table jelas, tombol aksi mudah dibedakan."],
+      ["Mobile", "Grid turun menjadi satu kolom, form tetap mudah disentuh."]
+    ])}${callout("Kita tidak mengubah logic PHP. Kita hanya memperbaiki <code>assets/css/style.css</code>.")}`
+  },
+  {
+    title: "CSS Variables",
+    html: code("css", `:root {
+    --color-bg: #fffaf3;
+    --color-surface: #ffffff;
+    --color-text: #2f2924;
+    --color-muted: #7a6f66;
+    --color-primary: #9b3f2f;
+    --color-primary-dark: #742f24;
+    --color-border: #eadfd3;
+    --color-success: #2f7d4f;
+    --color-warning: #b7791f;
+    --color-danger: #b42318;
+    --shadow-soft: 0 12px 30px rgba(47, 41, 36, 0.08);
+    --radius: 8px;
+    --container: 1100px;
+}`) 
+  },
+  {
+    title: "Base Layout",
+    html: code("css", `* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+}
+
+.container {
+    width: min(92%, var(--container));
+    margin: 0 auto;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--color-primary-dark);
+}`) 
+  },
+  {
+    title: "Header dan Navigation",
+    html: code("css", `.site-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.site-header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 18px 0;
+}
+
+.logo a {
+    color: var(--color-text);
+    font-weight: 700;
+}
+
+.top-nav {
+    display: flex;
+    gap: 16px;
+}`) 
+  },
+  {
+    title: "Recipe Grid dan Cards",
+    html: code("css", `.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    margin: 28px 0;
+}
+
+.recipe-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-soft);
+    padding: 20px;
+}
+
+.recipe-card h3 {
+    margin: 0 0 8px;
+}
+
+.recipe-card p {
+    color: var(--color-muted);
+}`) 
+  },
+  {
+    title: "Forms dan Buttons",
+    html: code("css", `.form-group {
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font: inherit;
+}
+
+.button,
+button {
+    border: 0;
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    cursor: pointer;
+}`) 
+  },
+  {
+    title: "Button Variants dan Alerts",
+    html: code("css", `.button-primary,
+button[type="submit"] {
+    background: var(--color-primary);
+    color: white;
+}
+
+.button-danger {
+    background: var(--color-danger);
+    color: white;
+}
+
+.button-neutral {
+    background: #f3ece4;
+    color: var(--color-text);
+}
+
+.alert {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff4df;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+}`) 
+  },
+  {
+    title: "Admin Table dan Status Badge",
+    html: code("css", `.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+}
+
+.status-pending {
+    color: var(--color-warning);
+    font-weight: 700;
+}
+
+.status-approved {
+    color: var(--color-success);
+    font-weight: 700;
+}
+
+.status-rejected {
+    color: var(--color-danger);
+    font-weight: 700;
+}`) 
+  },
+  {
+    title: "Detail Resep dan Komentar",
+    html: code("css", `.recipe-detail {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--shadow-soft);
+}
+
+.recipe-detail h2 {
+    margin-top: 0;
+}
+
+.comment {
+    background: var(--color-surface);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}`) 
+  },
+  {
+    title: "Responsive CSS",
+    html: code("css", `@media (max-width: 760px) {
+    .site-header .container {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .top-nav {
+        flex-wrap: wrap;
+    }
+
+    .recipe-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-table {
+        display: block;
+        overflow-x: auto;
+    }
+}`) 
+  },
+  {
+    title: "Sesudah Styling",
+    html: `${list([
+      "homepage punya card resep yang mudah dibaca",
+      "form register, login, dan submit resep terasa lebih rapi",
+      "admin table lebih jelas untuk approval dan CRUD",
+      "status pending, approved, rejected mudah dibedakan",
+      "mobile tidak memaksa tiga kolom"
+    ])}${callout("Logic PHP tetap sama. Yang berubah hanya cara browser menampilkan HTML melalui CSS.")}`
+  },
+  {
+    title: "Checklist Styling",
+    html: `${ordered([
+      "Buka homepage di desktop dan mobile.",
+      "Pastikan card resep tidak terlalu sempit.",
+      "Coba register/login: form mudah discan.",
+      "Buka admin table: kolom dan tombol tidak bertabrakan.",
+      "Pastikan status badge mudah dibedakan.",
+      "Pastikan tombol primary, danger, dan neutral punya rasa visual berbeda."
+    ])}${callout("Kalau styling membuat halaman sulit dipakai, berarti styling perlu disederhanakan.")}`
+  },
+  {
     title: "Apa yang Sudah Dipelajari?",
     html: list([
       "Apa itu database, table, row, column",
@@ -2378,7 +2651,8 @@ exit;`)}${callout("Setelah mengirim redirect, gunakan <code>exit</code> supaya k
       "Cara membaca flowchart, ER Diagram, dan Class Diagram",
       "Cara membuat struktur PHP dan koneksi MySQL",
       "Cara membuat register, login, dan admin approval",
-      "Dasar mencegah XSS dan SQL Injection"
+      "Dasar mencegah XSS dan SQL Injection",
+      "Bonus styling agar aplikasi lebih rapi dan responsive"
     ])
   },
   {
@@ -2540,6 +2814,20 @@ const storyNotes = [
   "Slug adalah nama jalan yang rapi untuk sebuah resep.",
   "Security lab adalah tempat latihan aman. Kita melihat contoh buruk hanya di lokal supaya tahu cara memperbaikinya.",
   "Di akhir, bentuk project sudah seperti rumah lengkap: ruang publik, ruang user, ruang admin, classes, uploads, dan security lab.",
+  "Level dua dimulai setelah aplikasi bekerja. Sekarang kita tidak mengejar fitur baru, tetapi membuat pengalaman memakai aplikasi terasa lebih rapi.",
+  "Sebelum styling, aplikasi boleh saja terlihat polos. Yang penting fondasinya sudah benar dulu.",
+  "Arah visual membantu kita memilih warna, jarak, dan bentuk komponen tanpa asal menebak.",
+  "CSS variables seperti catatan bahan desain. Kalau warna utama berubah, kita ubah di satu tempat.",
+  "Base layout adalah fondasi tampilan: font, background, container, link, dan line-height.",
+  "Header dan navigation membantu user tahu sedang berada di aplikasi apa dan bisa pindah halaman dengan nyaman.",
+  "Recipe card adalah wajah utama aplikasi resep. Card harus mudah discan, tidak terlalu ramai, dan punya jarak yang cukup.",
+  "Form yang rapi membuat user lebih percaya diri mengisi data.",
+  "Button variants dan alert membantu user membedakan aksi biasa, aksi utama, dan aksi berbahaya.",
+  "Admin table harus praktis. Admin butuh membaca status dan menekan tombol aksi tanpa bingung.",
+  "Halaman detail resep dan komentar perlu ruang baca yang nyaman karena isinya lebih panjang.",
+  "Responsive CSS memastikan tampilan tetap bisa dipakai di layar kecil.",
+  "Sesudah styling, logic PHP tetap sama. Kita hanya membuat HTML yang sama tampil lebih profesional.",
+  "Checklist styling mengingatkan kita bahwa desain bagus harus tetap mudah dipakai.",
   "Yang penting bukan hafal semua kode, tetapi mengerti cerita di baliknya.",
   "Coding adalah cara merapikan ide supaya bisa dipakai orang lain."
 ];
