@@ -1307,6 +1307,20 @@ $databaseConnection = $database->getConnection();`)}${callout("Dengan cara ini, 
     `
   },
   {
+    title: "Helper Kecil di bootstrap.php",
+    html: `${code("php", `function escapeHtml($value): string
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+function redirectTo(string $path): void
+{
+    header('Location: ' . APP_URL . $path);
+    exit;
+}`)}${callout("Helper ini tidak wajib, tapi membuat halaman lebih rapi: <code>escapeHtml()</code> untuk output aman, <code>redirectTo()</code> untuk redirect yang selalu diikuti <code>exit</code>.")}
+    `
+  },
+  {
     title: "Constructor Injection",
     html: `
       <p>Setiap class yang butuh database menerima object <code>PDO</code> dari luar.</p>
@@ -2642,6 +2656,162 @@ button[type="submit"] {
     ])}${callout("Kalau styling membuat halaman sulit dipakai, berarti styling perlu disederhanakan.")}`
   },
   {
+    className: "chapter",
+    html: `<p class="kicker">Level 2 Feature</p><h2>Edit Resep dan Upload Gambar</h2><p>Setelah styling, kita tambahkan fitur yang sering diminta user: resep bisa diedit dan punya gambar.</p>${tags(["edit recipe", "image upload", "pending review", "uploads folder"])}`
+  },
+  {
+    title: "Aturan Edit Resep",
+    html: `${list([
+      "User hanya boleh edit resep miliknya sendiri.",
+      "Edit judul, kategori, deskripsi, bahan, difficulty, dan waktu masak.",
+      "Upload gambar bersifat optional.",
+      "Setelah diedit, status resep kembali menjadi <code>pending</code>.",
+      "Admin harus approve ulang sebelum resep tampil publik."
+    ])}${callout("Ini penting: edit resep bisa mengubah isi yang sudah pernah approved, jadi harus masuk review lagi.")}`
+  },
+  {
+    title: "Recipe Class: Cari Resep Milik User",
+    html: code("php", `public function findByIdForUser(int $recipeId, int $userId): ?array
+{
+    $userRecipeStatement = $this->databaseConnection->prepare("
+        SELECT *
+        FROM recipes
+        WHERE id = ? AND user_id = ?
+    ");
+    $userRecipeStatement->execute([$recipeId, $userId]);
+    $recipe = $userRecipeStatement->fetch();
+
+    return $recipe ?: null;
+}`) 
+  },
+  {
+    title: "Recipe Class: Update Resep Jadi Pending",
+    html: code("php", `public function updateByUser(int $recipeId, int $userId, array $data): bool
+{
+    $updateRecipeStatement = $this->databaseConnection->prepare("
+        UPDATE recipes
+        SET title = ?, category_id = ?, description = ?, ingredients = ?,
+            cooking_type = ?, difficulty = ?, cooking_time_minutes = ?,
+            image = ?, status = 'pending', updated_at = NOW()
+        WHERE id = ? AND user_id = ?
+    ");
+
+    return $updateRecipeStatement->execute([
+        $data['title'], $data['category_id'], $data['description'],
+        $data['ingredients'], $data['cooking_type'], $data['difficulty'],
+        $data['cooking_time_minutes'], $data['image'], $recipeId, $userId
+    ]);
+}`) 
+  },
+  {
+    title: "Helper Upload Gambar",
+    html: `${code("php", `function uploadRecipeImage(array $uploadedFile, array &$errors): ?string
+{
+    if (($uploadedFile['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    $fileExtension = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
+
+    if (!in_array($fileExtension, $allowedExtensions, true)) {
+        $errors[] = 'Format gambar harus JPG, PNG, atau WEBP.';
+        return null;
+    }
+
+    // Simpan file ke folder uploads/
+}`)}${callout("Di file asli, helper juga mengecek error upload, ukuran maksimal 2MB, membuat nama file baru, lalu memindahkan file ke folder <code>uploads</code>.")}
+    `
+  },
+  {
+    title: "Form Upload Butuh enctype",
+    html: `${code("php", `<form method="post" class="content-form" enctype="multipart/form-data">
+    <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp">
+    <button type="submit">Simpan</button>
+</form>`)}${callout("Tanpa <code>enctype=\"multipart/form-data\"</code>, file dari input upload tidak akan masuk ke <code>$_FILES</code>.")}
+    `
+  },
+  {
+    title: "user/edit-recipe.php",
+    html: code("php", `<?php
+require_once __DIR__ . '/../includes/bootstrap.php';
+
+$auth = new Auth($databaseConnection);
+$auth->requireLogin();
+
+$recipeObject = new Recipe($databaseConnection);
+$recipeId = (int) ($_GET['id'] ?? 0);
+$recipe = $recipeObject->findByIdForUser($recipeId, $_SESSION['user_id']);
+
+if (!$recipe) {
+    die('Resep tidak ditemukan.');
+}`) 
+  },
+  {
+    title: "edit-recipe.php: Simpan Perubahan",
+    html: code("php", `$imageFileName = $recipe['image'];
+$uploadedImageFileName = uploadRecipeImage($_FILES['image'] ?? [], $errors);
+
+if ($uploadedImageFileName) {
+    $imageFileName = $uploadedImageFileName;
+}
+
+$recipeObject->updateByUser($recipeId, $_SESSION['user_id'], [
+    'title' => $title,
+    'category_id' => $categoryId,
+    'description' => $description,
+    'ingredients' => $ingredients,
+    'cooking_type' => $cookingType,
+    'difficulty' => $difficulty,
+    'cooking_time_minutes' => $cookingTimeMinutes,
+    'image' => $imageFileName
+]);`) 
+  },
+  {
+    title: "Link Edit di My Recipes",
+    html: code("php", `<a class="button button-neutral"
+   href="<?= APP_URL ?>/user/edit-recipe.php?id=<?= (int) $recipe['id'] ?>">
+    Edit
+</a>`) 
+  },
+  {
+    title: "Tampilkan Gambar Resep",
+    html: code("php", `<?php if ($recipe['image']): ?>
+    <img class="recipe-card-image"
+         src="<?= APP_URL ?>/uploads/<?= escapeHtml($recipe['image']) ?>"
+         alt="<?= escapeHtml($recipe['title']) ?>">
+<?php endif; ?>`) 
+  },
+  {
+    title: "CSS untuk Gambar Resep",
+    html: code("css", `.recipe-card-image,
+.recipe-detail-image,
+.current-recipe-image {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+}
+
+.recipe-card-image {
+    aspect-ratio: 4 / 3;
+}`) 
+  },
+  {
+    title: "Checklist Edit dan Upload",
+    html: `${ordered([
+      "Login sebagai user approved.",
+      "Buka <code>/user/my-recipes.php</code>.",
+      "Klik Edit pada salah satu resep.",
+      "Ubah judul atau upload gambar.",
+      "Pastikan resep kembali menjadi <code>pending</code>.",
+      "Login admin dan approve ulang resep tersebut.",
+      "Pastikan gambar tampil di homepage dan detail resep."
+    ])}${callout("Fitur ini menghubungkan form, upload file, database update, status approval, dan tampilan publik.")}
+    `
+  },
+  {
     title: "Apa yang Sudah Dipelajari?",
     html: list([
       "Apa itu database, table, row, column",
@@ -2652,7 +2822,8 @@ button[type="submit"] {
       "Cara membuat struktur PHP dan koneksi MySQL",
       "Cara membuat register, login, dan admin approval",
       "Dasar mencegah XSS dan SQL Injection",
-      "Bonus styling agar aplikasi lebih rapi dan responsive"
+      "Bonus styling agar aplikasi lebih rapi dan responsive",
+      "Edit resep dan upload gambar dengan review ulang"
     ])
   },
   {
@@ -2754,6 +2925,7 @@ const storyNotes = [
   "getConnection mengembalikan koneksi yang sudah dibuat, supaya class lain bisa memakai database tanpa membuat koneksi baru sendiri.",
   "Bootstrap sekarang lebih rapi karena meminta koneksi lewat class Database.",
   "Versi akhir bootstrap juga mengenalkan semua class utama. Dengan begitu halaman tidak perlu require class satu per satu terlalu sering.",
+  "Helper kecil membuat halaman lebih mudah dibaca. Kita tetap memakai htmlspecialchars dan header, hanya dibungkus dengan nama yang jelas.",
   "Constructor injection berarti class menerima koneksi dari luar. Satu PDO dari bootstrap dipakai bersama.",
   "Validator seperti penjaga pintu form. Ia mengecek apakah data masuk akal sebelum diterima.",
   "User class memegang urusan data user: mencari username dan membuat akun baru.",
@@ -2828,6 +3000,18 @@ const storyNotes = [
   "Responsive CSS memastikan tampilan tetap bisa dipakai di layar kecil.",
   "Sesudah styling, logic PHP tetap sama. Kita hanya membuat HTML yang sama tampil lebih profesional.",
   "Checklist styling mengingatkan kita bahwa desain bagus harus tetap mudah dipakai.",
+  "Setelah styling, kita tambahkan fitur level dua yang terasa nyata untuk aplikasi resep: edit resep dan upload gambar.",
+  "Aturan pentingnya: begitu resep diedit, ia kembali pending. Ini menjaga kualitas konten publik.",
+  "Sebelum edit, pastikan resep itu milik user yang sedang login. Jangan izinkan user mengedit resep orang lain.",
+  "Update resep tidak hanya mengubah data. Ia juga mengubah status ke pending supaya admin review ulang.",
+  "Upload gambar punya beberapa aturan: boleh kosong, format harus aman, ukuran dibatasi, dan file disimpan di uploads.",
+  "Form upload punya satu detail wajib: enctype multipart. Tanpa itu, file tidak akan sampai ke PHP.",
+  "Halaman edit dimulai dengan login protection dan pengecekan kepemilikan resep.",
+  "Saat menyimpan edit, gambar lama dipakai lagi kalau user tidak upload gambar baru.",
+  "My Recipes perlu tombol edit supaya user punya jalan masuk ke halaman edit.",
+  "Gambar resep tampil kalau column image berisi nama file.",
+  "CSS gambar menjaga card tetap rapi walaupun ukuran file asli berbeda-beda.",
+  "Checklist edit dan upload memastikan fitur ini benar-benar menyambung dari user area sampai admin approval dan halaman publik.",
   "Yang penting bukan hafal semua kode, tetapi mengerti cerita di baliknya.",
   "Coding adalah cara merapikan ide supaya bisa dipakai orang lain."
 ];
