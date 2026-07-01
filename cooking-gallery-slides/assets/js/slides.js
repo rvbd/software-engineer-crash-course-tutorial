@@ -116,11 +116,22 @@ const slides = [
   },
   {
     title: "Data Punya Hubungan",
-    html: `<p>Data tidak hidup sendirian. Di aplikasi resep, data saling terhubung seperti anggota keluarga.</p>${list([
-      "Satu user bisa menulis banyak resep.",
-      "Satu resep bisa punya banyak komentar.",
-      "Satu kategori bisa punya banyak resep."
-    ])}${callout("Relationship membantu kita memahami hubungan antar data.")}`
+    html: `
+      <div class="media-split">
+        <div>
+          <p>Data tidak hidup sendirian. Di aplikasi resep, data saling terhubung seperti anggota keluarga.</p>
+          ${list([
+            "Satu user bisa menulis banyak resep.",
+            "Satu resep bisa punya banyak komentar.",
+            "Satu kategori bisa punya banyak resep."
+          ])}
+          ${callout("Relationship membantu kita memahami hubungan antar data.")}
+        </div>
+        <figure class="slide-visual">
+          <img src="assets/images/relationship-family-tree.png" alt="Ilustrasi family tree sebagai analogi hubungan antar data">
+        </figure>
+      </div>
+    `
   },
   {
     title: "Jenis Relasi Data",
@@ -131,8 +142,148 @@ const slides = [
     ], "three")}${callout("Untuk Cooking Gallery, kita paling sering memakai one-to-many.")}`
   },
   {
+    title: "Dari Cerita ke ER Diagram",
+    html: `
+      <p>Sebelum membuat table, kita ubah cerita menjadi gambar hubungan data.</p>
+      ${cards([
+        { title: "Ayah", body: "Entity: benda atau tokoh penting yang datanya disimpan." },
+        { title: "Anak", body: "Entity lain yang juga punya data sendiri." },
+        { title: "Punya", body: "Relationship: garis hubungan antar entity." }
+      ], "three")}
+      ${callout("ER Diagram adalah gambar cerita data: siapa tokohnya, dan bagaimana mereka terhubung.")}
+    `
+  },
+  {
+    title: "Ayah dan Anak",
+    html: `
+      <div class="grid two">
+        <div>
+          <p>Contoh sederhana:</p>
+          ${list([
+            "Satu Ayah bisa punya banyak Anak.",
+            "Dalam versi sederhana, satu Anak menunjuk ke satu Ayah.",
+            "Table <code>kids</code> bisa menyimpan <code>dad_id</code>."
+          ])}
+          ${callout("Ini disebut one-to-many dari sisi Ayah ke Anak.")}
+        </div>
+        ${diagram(`erDiagram
+    DADS ||--o{ KIDS : has`)}
+      </div>
+    `
+  },
+  {
+    title: "Tambahkan Ibu",
+    html: `
+      <div class="grid two">
+        <div>
+          <p>Sekarang ceritanya bertambah: Anak juga punya Ibu.</p>
+          ${list([
+            "Satu Ibu bisa punya banyak Anak.",
+            "Satu Anak bisa punya garis ke Ayah dan Ibu.",
+            "Semakin banyak entity, semakin banyak garis hubungan."
+          ])}
+          ${callout("Kita mulai melihat bahwa hubungan data bisa lebih dari satu garis.")}
+        </div>
+        ${diagram(`erDiagram
+    DADS ||--o{ KIDS : father_of
+    MOMS ||--o{ KIDS : mother_of`)}
+      </div>
+    `
+  },
+  {
+    title: "Table Kids Berubah",
+    html: `
+      <p>Kalau Anak punya hubungan ke Ayah dan Ibu, table <code>kids</code> perlu menyimpan alamat ke dua table itu.</p>
+      <div class="grid two">
+        <div>
+          ${table(["Column", "Artinya"], [
+            ["id", "ID anak"],
+            ["name", "Nama anak"],
+            ["dad_id", "Terhubung ke table dads"],
+            ["mom_id", "Terhubung ke table moms"]
+          ])}
+          ${callout("<code>dad_id</code> dan <code>mom_id</code> adalah foreign key. Mereka seperti tali kecil yang menghubungkan Anak ke Ayah dan Ibu.")}
+        </div>
+        ${diagram(`erDiagram
+    DADS ||--o{ KIDS : father_of
+    MOMS ||--o{ KIDS : mother_of
+
+    KIDS {
+        int id PK
+        string name
+        int dad_id FK
+        int mom_id FK
+    }`)}
+      </div>
+    `
+  },
+  {
+    title: "Family Register sebagai Buku Keluarga",
+    html: `
+      <p>Bayangkan ada <strong>buku keluarga</strong>. Buku ini bukan Ayah, bukan Ibu, dan bukan Anak. Buku ini mencatat siapa saja yang masuk dalam satu keluarga.</p>
+      ${cards([
+        { title: "family_registers", body: "Buku / catatan keluarga." },
+        { title: "dads", body: "Data Ayah." },
+        { title: "moms", body: "Data Ibu." },
+        { title: "kids", body: "Data Anak." }
+      ])}
+      ${callout("Karena register hanya buku pencatat, kita butuh table penghubung untuk menulis siapa yang muncul di buku itu.")}
+    `
+  },
+  {
+    title: "Connector Table",
+    html: `
+      <p>Connector table menyimpan pasangan data, misalnya: family register A berisi dad B.</p>
+      ${diagram(`erDiagram
+    FAMILY_REGISTERS ||--o{ FAMILY_REGISTER_TO_DAD : has
+    DADS ||--o{ FAMILY_REGISTER_TO_DAD : listed_in
+
+    FAMILY_REGISTERS ||--o{ FAMILY_REGISTER_TO_MOM : has
+    MOMS ||--o{ FAMILY_REGISTER_TO_MOM : listed_in
+
+    FAMILY_REGISTERS ||--o{ FAMILY_REGISTER_TO_KID : has
+    KIDS ||--o{ FAMILY_REGISTER_TO_KID : listed_in`)}
+      ${callout("Table penghubung membuat hubungan many-to-many lebih rapi dan jelas.")}
+    `
+  },
+  {
+    title: "Desain Bisa Dioptimalkan",
+    html: `
+      <div class="grid two">
+        <div>
+          <p>Setelah paham versi jelasnya, kita bisa melihat pola: Dad, Mom, dan Kid sebenarnya sama-sama orang.</p>
+          ${list([
+            "<code>family_members</code> menyimpan semua orang.",
+            "<code>type</code> membedakan <code>dad</code>, <code>mom</code>, dan <code>kid</code>.",
+            "<code>family_register_members</code> menjadi satu connector table."
+          ])}
+          ${callout("Desain pertama membantu belajar. Desain optimal mengurangi table yang berulang.")}
+        </div>
+        ${diagram(`erDiagram
+    FAMILY_REGISTERS ||--o{ FAMILY_REGISTER_MEMBERS : has
+    FAMILY_MEMBERS ||--o{ FAMILY_REGISTER_MEMBERS : listed_in
+
+    FAMILY_MEMBERS {
+        int id PK
+        string name
+        string type
+    }`)}
+      </div>
+    `
+  },
+  {
     title: "Database Merapikan Data, OOP Merapikan Kode",
     html: `<p>Database membantu kita mengatur data. OOP membantu kita mengatur kode.</p>${callout("Saat aplikasi makin besar, kode harus dirapikan supaya mudah dipahami.")}`
+  },
+  {
+    className: "chapter",
+    skipStory: true,
+    html: `
+      <p class="kicker">Bagian OOP</p>
+      <h2>Class dan Object</h2>
+      <p>Sekarang kita belajar cara merapikan kode dengan cerita sederhana: cetakan kue dan kue yang sudah jadi.</p>
+      ${tags(["class = cetakan", "object = hasil nyata", "attribute = ciri", "method = aksi"])}
+    `
   },
   {
     title: "Class dan Object",
@@ -791,6 +942,86 @@ include __DIR__ . '/includes/header.php';
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
   },
   {
+    className: "chapter",
+    skipStory: true,
+    html: `
+      <p class="kicker">Bagian PHP Classes</p>
+      <h2>Membuat Class di PHP</h2>
+      <p>Sekarang rancangan class mulai berubah menjadi file PHP sungguhan.</p>
+      ${tags(["class", "property", "constructor", "method", "object"])}
+    `
+  },
+  {
+    title: "Bentuk Dasar Class PHP",
+    html: `
+      <p>Class adalah cetakan. Di PHP, cetakan itu ditulis dengan kata <code>class</code>, lalu diberi nama.</p>
+      ${code("php", `<?php
+
+class CookieMold
+{
+    // Isi class ditulis di dalam kurung kurawal ini.
+}`)}
+      ${callout("Nama class biasanya memakai huruf besar di awal, misalnya <code>CookieMold</code>, <code>User</code>, atau <code>Recipe</code>.")}
+    `
+  },
+  {
+    title: "Isi Class: Property",
+    html: `
+      <p>Property adalah data yang dimiliki class. Kalau cetakan kue punya bahan dan bentuk, class juga bisa punya data di dalamnya.</p>
+      ${code("php", `class CookieMold
+{
+    private string $material = 'metal';
+    private string $shape = 'gingerbread';
+}`)}
+      ${table(["Bagian", "Artinya"], [
+        ["<code>private</code>", "Data ini hanya boleh dipakai dari dalam class."],
+        ["<code>string</code>", "Tipe datanya adalah teks."],
+        ["<code>$material</code>", "Nama property."],
+        ["<code>'metal'</code>", "Nilai awal property."]
+      ])}
+    `
+  },
+  {
+    title: "Constructor: Saat Object Dibuat",
+    html: `
+      <p>Constructor adalah method khusus yang otomatis berjalan saat object baru dibuat.</p>
+      ${code("php", `class CookieMold
+{
+    private string $shape;
+
+    public function __construct(string $shape)
+    {
+        $this->shape = $shape;
+    }
+}`)}
+      ${callout("<code>$this</code> artinya: object ini sendiri. Jadi <code>$this->shape</code> berarti property <code>shape</code> milik object ini.")}
+    `
+  },
+  {
+    title: "Method dan Object",
+    html: `
+      <p>Method adalah aksi. Setelah class punya data, class juga bisa punya aksi yang memakai data itu.</p>
+      ${code("php", `class CookieMold
+{
+    private string $shape;
+
+    public function __construct(string $shape)
+    {
+        $this->shape = $shape;
+    }
+
+    public function makeCookie(): string
+    {
+        return 'Membuat kue bentuk ' . $this->shape;
+    }
+}
+
+$mold = new CookieMold('gingerbread');
+echo $mold->makeCookie();`)}
+      ${callout("<code>new CookieMold(...)</code> membuat object baru dari class <code>CookieMold</code>.")}
+    `
+  },
+  {
     title: "Folder classes",
     html: `${tree(`classes/
 +-- Database.php
@@ -1160,7 +1391,15 @@ const storyNotes = [
   "Sebelum membuat table, kita bertanya dulu: benda penting apa saja yang muncul di cerita aplikasi kita?",
   "Data itu seperti orang di sebuah keluarga. User, resep, kategori, dan komentar saling kenal karena punya hubungan.",
   "Tidak semua hubungan sama. Ada yang satu-satu, satu-ke-banyak, dan banyak-ke-banyak. Untuk aplikasi resep, kita paling sering memakai satu-ke-banyak.",
+  "Setelah tahu jenis hubungan, kita belajar menggambarnya. ER Diagram adalah cara mengubah cerita menjadi peta data.",
+  "Mulai dari cerita kecil: Ayah dan Anak. Dari satu Ayah ke banyak Anak, kita bisa melihat bentuk one-to-many.",
+  "Lalu kita tambahkan Ibu. Sekarang satu Anak punya lebih dari satu garis hubungan, dan peta data mulai terlihat seperti silsilah.",
+  "Garis di ERD nanti berubah menjadi kolom di table. Karena Anak terhubung ke Ayah dan Ibu, table kids menyimpan dad_id dan mom_id.",
+  "Family register seperti buku keluarga. Buku ini mengumpulkan catatan siapa saja yang termasuk dalam satu keluarga.",
+  "Connector table adalah halaman penghubung. Ia tidak menggantikan Ayah, Ibu, atau Anak, tetapi mencatat siapa terdaftar di buku keluarga.",
+  "Setelah paham versi yang mudah dilihat, kita bisa merapikan desain. Ayah, Ibu, dan Anak sama-sama family member, hanya tipenya berbeda.",
   "Kalau database merapikan isi lemari, OOP merapikan cara kita bekerja di dapur kode.",
+  "",
   "Class itu seperti cetakan kue. Object adalah kue yang sudah jadi dari cetakan itu.",
   "Setiap benda punya ciri. Cetakan kue punya bahan, bentuk, dan ukuran. Di OOP, ciri seperti itu kita sebut attribute.",
   "Selain punya ciri, benda juga bisa melakukan aksi. Cetakan kue bisa menekan adonan, diangkat, lalu menghasilkan bentuk kue. Di OOP, aksi seperti ini disebut method.",
@@ -1205,6 +1444,11 @@ const storyNotes = [
   "Table categories menyimpan rak kategori resep, seperti Breakfast, Lunch, Dinner, dan Dessert.",
   "Table recipes adalah tempat kartu resep utama disimpan.",
   "Table comments menyimpan percakapan di bawah resep.",
+  "",
+  "Sebelum menulis class besar, kita kenali dulu bentuk dasarnya. Class di PHP adalah cetakan yang ditulis dengan kata class.",
+  "Property adalah data di dalam class. Seperti cetakan kue punya bahan dan bentuk, class punya property untuk menyimpan ciri.",
+  "Constructor seperti momen saat cetakan dipilih dan disiapkan. Ia otomatis berjalan ketika object baru dibuat.",
+  "Method adalah aksi di dalam class. Setelah object dibuat, kita bisa memanggil aksinya dengan tanda panah.",
   "Folder classes seperti kotak alat khusus. Setiap class memegang satu pekerjaan.",
   "Database class menjadi petugas pembuka pintu ke MySQL.",
   "Bootstrap sekarang lebih rapi karena meminta koneksi lewat class Database.",
@@ -1240,6 +1484,11 @@ const container = document.getElementById("slides");
 container.innerHTML = slides.map((slide, index) => {
   const heading = slide.title ? `<h2>${slide.title}</h2>` : "";
   const className = slide.className ? ` class="${slide.className}"` : "";
+  const isTopicChange = ["hero-title", "chapter", "case-study-divider"].some((name) =>
+    slide.className?.split(" ").includes(name)
+  );
+  const transition = slide.transition ?? (isTopicChange ? "zoom" : "");
+  const transitionAttr = transition ? ` data-transition="${transition}"` : "";
   const story = !slide.skipStory && storyNotes[index] ? storyBox(storyNotes[index]) : "";
-  return `<section${className} data-slide="${index + 1}"><div class="slide-inner">${heading}${story}${slide.html}</div></section>`;
+  return `<section${className}${transitionAttr} data-slide="${index + 1}"><div class="slide-inner">${heading}${story}${slide.html}</div></section>`;
 }).join("");
