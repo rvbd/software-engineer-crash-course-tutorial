@@ -2047,6 +2047,13 @@ include __DIR__ . '/../includes/header.php';
 <a href="<?= APP_URL ?>/user/new-recipe.php">Tulis Resep Baru</a>`)
   },
   {
+    title: "Hasil Dashboard User",
+    html: `<p>Dashboard menjadi ruang kerja user: melihat status resep sendiri dan masuk ke form tulis/edit resep.</p>
+      <figure class="website-shot tall">
+        <img src="assets/images/site-user-dashboard.png" alt="Screenshot dashboard user Cooking Gallery dengan table resep milik user">
+      </figure>`
+  },
+  {
     title: "user/my-recipes.php",
     html: code("php", `<table>
     <tr>
@@ -2062,6 +2069,13 @@ include __DIR__ . '/../includes/header.php';
         </tr>
     <?php endforeach; ?>
 </table>`)
+  },
+  {
+    title: "Hasil My Recipes",
+    html: `<p>Halaman ini penting untuk teaching approval: user bisa melihat mana resep yang masih <code>pending</code> dan mana yang sudah <code>approved</code>.</p>
+      <figure class="website-shot tall">
+        <img src="assets/images/site-user-my-recipes.png" alt="Screenshot halaman My Recipes dengan status pending dan approved">
+      </figure>`
   },
   {
     title: "Form New Recipe",
@@ -2173,6 +2187,13 @@ include __DIR__ . '/../includes/header.php';
     <a href="<?= APP_URL ?>/admin/recipes.php">Recipes</a>
     <a href="<?= APP_URL ?>/admin/comments.php">Comments</a>
 </nav>`)
+  },
+  {
+    title: "Hasil Admin Dashboard",
+    html: `<p>Admin dashboard adalah pintu masuk ke semua pekerjaan moderasi: users, categories, recipes, dan comments.</p>
+      <figure class="website-shot tall">
+        <img src="assets/images/site-admin-dashboard.png" alt="Screenshot admin dashboard Cooking Gallery">
+      </figure>`
   },
   {
     title: "admin/users.php: POST Action",
@@ -2730,6 +2751,38 @@ button[type="submit"] {
     ])}${callout("Ini penting: edit resep bisa mengubah isi yang sudah pernah approved, jadi harus masuk review lagi.")}`
   },
   {
+    title: "Mental Model Upload File",
+    html: `${diagram(`flowchart LR
+    A[Browser pilih file] --> B[POST multipart/form-data]
+    B --> C[PHP menerima $_FILES]
+    C --> D[File sementara di tmp_name]
+    D --> E[Validasi error, size, extension]
+    E --> F[move_uploaded_file ke uploads]
+    F --> G[Simpan nama file di database]`)}${callout("Database tidak menyimpan isi gambar. Database hanya menyimpan nama file, misalnya <code>recipe-20260701-a1b2c3.png</code>. File aslinya tinggal di folder <code>uploads</code>.")}`
+  },
+  {
+    title: "Isi $_FILES",
+    html: `${table(["Key", "Artinya"], [
+      ["<code>name</code>", "Nama file asli dari komputer user."],
+      ["<code>type</code>", "MIME type dari browser. Boleh dibaca, tapi jangan dipercaya penuh."],
+      ["<code>tmp_name</code>", "Lokasi file sementara yang dibuat PHP."],
+      ["<code>error</code>", "Kode sukses/gagal upload."],
+      ["<code>size</code>", "Ukuran file dalam bytes."]
+    ])}${callout("Bagian paling penting biasanya <code>error</code>, <code>size</code>, <code>name</code>, dan <code>tmp_name</code>.")}`
+  },
+  {
+    title: "Aturan Aman Upload",
+    html: `${ordered([
+      "Kalau user tidak memilih file, return <code>null</code>.",
+      "Kalau <code>error</code> bukan <code>UPLOAD_ERR_OK</code>, tampilkan error.",
+      "Batasi ukuran file, misalnya maksimal 2MB.",
+      "Izinkan extension tertentu saja: jpg, jpeg, png, webp.",
+      "Buat nama file baru yang unik.",
+      "Pindahkan dari <code>tmp_name</code> ke folder <code>uploads</code>.",
+      "Return nama file baru untuk disimpan ke database."
+    ])}${callout("Kita tidak memakai nama file asli sebagai nama akhir, karena bisa bentrok atau berisi karakter yang merepotkan.")}`
+  },
+  {
     title: "Recipe Class: Cari Resep Milik User",
     html: code("php", `public function findByIdForUser(int $recipeId, int $userId): ?array
 {
@@ -2771,6 +2824,16 @@ button[type="submit"] {
         return null;
     }
 
+    if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
+        $errors[] = 'Upload gambar gagal.';
+        return null;
+    }
+
+    if ($uploadedFile['size'] > 2 * 1024 * 1024) {
+        $errors[] = 'Ukuran gambar maksimal 2MB.';
+        return null;
+    }
+
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
     $fileExtension = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
 
@@ -2779,8 +2842,22 @@ button[type="submit"] {
         return null;
     }
 
-    // Simpan file ke folder uploads/
-}`)}${callout("Di file asli, helper juga mengecek error upload, ukuran maksimal 2MB, membuat nama file baru, lalu memindahkan file ke folder <code>uploads</code>.")}
+    $newFileName = 'recipe-' . date('YmdHis') . '-' . bin2hex(random_bytes(4)) . '.' . $fileExtension;
+    $uploadDirectory = __DIR__ . '/../uploads';
+
+    if (!is_dir($uploadDirectory)) {
+        mkdir($uploadDirectory, 0777, true);
+    }
+
+    $targetPath = $uploadDirectory . '/' . $newFileName;
+
+    if (!move_uploaded_file($uploadedFile['tmp_name'], $targetPath)) {
+        $errors[] = 'Gambar tidak bisa disimpan.';
+        return null;
+    }
+
+    return $newFileName;
+}`)}${callout("<code>move_uploaded_file()</code> khusus untuk file upload. Ia memastikan file memang datang dari proses upload PHP, bukan path sembarangan.")}
     `
   },
   {
@@ -2826,6 +2903,13 @@ $recipeObject->updateByUser($recipeId, $_SESSION['user_id'], [
     'cooking_time_minutes' => $cookingTimeMinutes,
     'image' => $imageFileName
 ]);`) 
+  },
+  {
+    title: "Hasil Edit dan Upload",
+    html: `<p>Di form edit, user bisa melihat gambar lama, memilih gambar baru, lalu mengirim ulang resep untuk review admin.</p>
+      <figure class="website-shot tall">
+        <img src="assets/images/site-user-edit-recipe.png" alt="Screenshot halaman edit resep dengan preview gambar lama dan input upload">
+      </figure>`
   },
   {
     title: "Link Edit di My Recipes",
@@ -3023,7 +3107,9 @@ const storyNotes = [
   "Melindungi halaman seperti memasang tanda: hanya user login atau admin yang boleh masuk.",
   "Dashboard adalah meja kerja user setelah berhasil masuk.",
   "Dashboard memanggil requireLogin, lalu mengambil resep milik user dari session user_id.",
+  "Screenshot dashboard menunjukkan alasan halaman ini ada: user butuh tempat melihat pekerjaan dan status resepnya sendiri.",
   "My recipes menampilkan status resep supaya user tahu apakah resepnya masih pending atau sudah approved.",
+  "My Recipes membuat konsep approval terasa nyata karena user melihat sendiri status pending dan approved.",
   "Form resep adalah kartu kosong yang diisi user sebelum dikirim ke admin.",
   "Saat form resep dikirim, kita validasi judul, siapkan slug sederhana, lalu simpan sebagai pending.",
   "Form resep mengambil kategori dari database, bukan menulis option manual.",
@@ -3031,6 +3117,7 @@ const storyNotes = [
   "Profile sederhana dulu: tampilkan username dan role dari session.",
   "Admin panel adalah meja pemeriksaan konten.",
   "Admin dashboard menjadi pintu ke halaman users, categories, recipes, dan comments.",
+  "Admin dashboard membantu murid memahami bahwa admin area bukan satu halaman, tetapi kumpulan pekerjaan moderasi.",
   "Halaman users membaca action dari tombol POST: approve, reject, make admin, atau delete.",
   "Table users menaruh beberapa tombol dalam satu form kecil per baris.",
   "Halaman categories memakai pola CRUD sederhana: create, update, delete dalam satu file.",
@@ -3069,12 +3156,16 @@ const storyNotes = [
   "Checklist styling mengingatkan kita bahwa desain bagus harus tetap mudah dipakai.",
   "Setelah styling, kita tambahkan fitur level dua yang terasa nyata untuk aplikasi resep: edit resep dan upload gambar.",
   "Aturan pentingnya: begitu resep diedit, ia kembali pending. Ini menjaga kualitas konten publik.",
+  "Upload file terasa sulit karena data tidak masuk lewat POST biasa. Ada jalur khusus: multipart form, $_FILES, temporary file, lalu pindah ke uploads.",
+  "$_FILES adalah map kecil dari PHP tentang file yang dikirim browser. Kita baca infonya sebelum memutuskan file aman disimpan.",
+  "Aturan upload dibuat berlapis: boleh kosong, harus sukses, ukuran masuk akal, extension diizinkan, nama baru unik, baru dipindahkan.",
   "Sebelum edit, pastikan resep itu milik user yang sedang login. Jangan izinkan user mengedit resep orang lain.",
   "Update resep tidak hanya mengubah data. Ia juga mengubah status ke pending supaya admin review ulang.",
   "Upload gambar punya beberapa aturan: boleh kosong, format harus aman, ukuran dibatasi, dan file disimpan di uploads.",
   "Form upload punya satu detail wajib: enctype multipart. Tanpa itu, file tidak akan sampai ke PHP.",
   "Halaman edit dimulai dengan login protection dan pengecekan kepemilikan resep.",
   "Saat menyimpan edit, gambar lama dipakai lagi kalau user tidak upload gambar baru.",
+  "Screenshot edit memperlihatkan upload sebagai pengalaman user: lihat gambar lama, pilih file baru, lalu kirim review ulang.",
   "My Recipes perlu tombol edit supaya user punya jalan masuk ke halaman edit.",
   "Gambar resep tampil kalau column image berisi nama file.",
   "CSS gambar menjaga card tetap rapi walaupun ukuran file asli berbeda-beda.",
@@ -3096,3 +3187,117 @@ container.innerHTML = slides.map((slide, index) => {
   const story = !slide.skipStory && storyNotes[index] ? storyBox(storyNotes[index]) : "";
   return `<section${className}${transitionAttr} data-slide="${index + 1}"><div class="slide-inner">${heading}${story}${slide.html}</div></section>`;
 }).join("");
+
+const plainText = (value) => value
+  .replace(/<[^>]+>/g, " ")
+  .replace(/\s+/g, " ")
+  .trim();
+
+const getSlideIndexTitle = (slide, index) => {
+  if (slide.title) {
+    return slide.title;
+  }
+
+  const headingMatch = slide.html.match(/<h[12][^>]*>(.*?)<\/h[12]>/i);
+
+  if (headingMatch) {
+    return plainText(headingMatch[1]);
+  }
+
+  return `Slide ${index + 1}`;
+};
+
+const buildDeckIndex = () => {
+  const indexButton = document.createElement("button");
+  indexButton.className = "deck-index-toggle";
+  indexButton.type = "button";
+  indexButton.textContent = "Index";
+  indexButton.setAttribute("aria-haspopup", "dialog");
+
+  const indexPanel = document.createElement("div");
+  indexPanel.className = "deck-index-panel";
+  indexPanel.setAttribute("role", "dialog");
+  indexPanel.setAttribute("aria-modal", "true");
+  indexPanel.setAttribute("aria-label", "Index slide");
+
+  const indexCard = document.createElement("div");
+  indexCard.className = "deck-index-card";
+
+  const indexHeader = document.createElement("div");
+  indexHeader.className = "deck-index-header";
+  indexHeader.innerHTML = `<h2>Index Slide</h2>`;
+
+  const closeButton = document.createElement("button");
+  closeButton.className = "deck-index-close";
+  closeButton.type = "button";
+  closeButton.textContent = "Tutup";
+  indexHeader.appendChild(closeButton);
+
+  const searchInput = document.createElement("input");
+  searchInput.className = "deck-index-search";
+  searchInput.type = "search";
+  searchInput.placeholder = "Cari slide, contoh: dashboard, upload, admin...";
+
+  const indexList = document.createElement("div");
+  indexList.className = "deck-index-list";
+
+  const slideLinks = slides.map((slide, index) => {
+    const slideTitle = getSlideIndexTitle(slide, index);
+    const linkButton = document.createElement("button");
+    linkButton.className = "deck-index-link";
+    linkButton.type = "button";
+    linkButton.dataset.search = `${index + 1} ${slideTitle}`.toLowerCase();
+    linkButton.innerHTML = `
+      <span class="deck-index-number">${index + 1}</span>
+      <span class="deck-index-title">${slideTitle}</span>
+    `;
+    linkButton.addEventListener("click", () => {
+      Reveal.slide(index);
+      closeIndex();
+    });
+    indexList.appendChild(linkButton);
+    return linkButton;
+  });
+
+  const openIndex = () => {
+    indexPanel.classList.add("is-open");
+    searchInput.value = "";
+    slideLinks.forEach((linkButton) => {
+      linkButton.style.display = "";
+    });
+    searchInput.focus();
+  };
+
+  function closeIndex() {
+    indexPanel.classList.remove("is-open");
+    indexButton.focus();
+  }
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.trim().toLowerCase();
+    slideLinks.forEach((linkButton) => {
+      linkButton.style.display = query && !linkButton.dataset.search.includes(query) ? "none" : "";
+    });
+  });
+
+  indexButton.addEventListener("click", openIndex);
+  closeButton.addEventListener("click", closeIndex);
+  indexPanel.addEventListener("click", (event) => {
+    if (event.target === indexPanel) {
+      closeIndex();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key.toLowerCase() === "i" && !indexPanel.classList.contains("is-open")) {
+      openIndex();
+    } else if (event.key === "Escape" && indexPanel.classList.contains("is-open")) {
+      closeIndex();
+    }
+  });
+
+  indexCard.append(indexHeader, searchInput, indexList);
+  indexPanel.appendChild(indexCard);
+  document.body.append(indexButton, indexPanel);
+};
+
+buildDeckIndex();

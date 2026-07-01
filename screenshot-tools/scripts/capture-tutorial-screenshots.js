@@ -54,8 +54,19 @@ async function login(page, username, password) {
   });
   const userPage = await userContext.newPage();
   await login(userPage, 'maya', 'user123');
+  await userPage.goto(`${siteBaseUrl}/user/dashboard.php`, { waitUntil: 'networkidle' });
+  await saveScreenshot(userPage, 'site-user-dashboard.png');
+
+  await userPage.goto(`${siteBaseUrl}/user/my-recipes.php`, { waitUntil: 'networkidle' });
+  await saveScreenshot(userPage, 'site-user-my-recipes.png');
+
   await userPage.goto(`${siteBaseUrl}/user/new-recipe.php`, { waitUntil: 'networkidle' });
   await saveScreenshot(userPage, 'site-user-new-recipe.png', { fullPage: true });
+
+  await userPage.goto(`${siteBaseUrl}/user/edit-recipe.php?id=1`, { waitUntil: 'networkidle' });
+  await userPage.locator('.content-form').screenshot({
+    path: path.join(slideImagesDirectory, 'site-user-edit-recipe.png'),
+  });
 
   const adminContext = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
@@ -63,6 +74,9 @@ async function login(page, username, password) {
   });
   const adminPage = await adminContext.newPage();
   await login(adminPage, 'admin', 'admin123');
+  await adminPage.goto(`${siteBaseUrl}/admin/index.php`, { waitUntil: 'networkidle' });
+  await saveScreenshot(adminPage, 'site-admin-dashboard.png');
+
   await adminPage.goto(`${siteBaseUrl}/admin/recipes.php`, { waitUntil: 'networkidle' });
   await saveScreenshot(adminPage, 'site-admin-recipes.png', { fullPage: true });
 
