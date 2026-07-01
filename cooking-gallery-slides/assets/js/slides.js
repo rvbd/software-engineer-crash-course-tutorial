@@ -1241,5 +1241,5 @@ container.innerHTML = slides.map((slide, index) => {
   const heading = slide.title ? `<h2>${slide.title}</h2>` : "";
   const className = slide.className ? ` class="${slide.className}"` : "";
   const story = !slide.skipStory && storyNotes[index] ? storyBox(storyNotes[index]) : "";
-  return `<section${className} data-slide="${index + 1}">${heading}${story}${slide.html}</section>`;
+  return `<section${className} data-slide="${index + 1}"><div class="slide-inner">${heading}${story}${slide.html}</div></section>`;
 }).join("");

@@ -34,6 +34,18 @@ body {
   text-align: left;
 }
 
+.slide-inner {
+  height: 100%;
+  max-height: 644px;
+  position: relative;
+  transform-origin: top left;
+  width: 100%;
+}
+
+.reveal .slides section.fit-scaled {
+  overflow: hidden;
+}
+
 .reveal h1,
 .reveal h2,
 .reveal h3 {
@@ -114,11 +126,14 @@ body {
 }
 
 .case-study-divider {
-  display: grid !important;
-  gap: 34px;
-  grid-template-columns: minmax(420px, 0.9fr) minmax(0, 1.1fr);
   min-height: 620px;
   overflow: hidden;
+}
+
+.case-study-divider .slide-inner {
+  display: grid;
+  gap: 34px;
+  grid-template-columns: minmax(420px, 0.9fr) minmax(0, 1.1fr);
 }
 
 .case-study-divider h2 {
@@ -249,8 +264,27 @@ body {
 .media-split {
   align-items: center;
   display: grid;
-  gap: 28px;
+  gap: 22px;
   grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+}
+
+.media-split .grid {
+  gap: 12px;
+}
+
+.media-split .card {
+  padding: 13px 15px;
+}
+
+.media-split .card h3 {
+  font-size: 21px;
+  margin-bottom: 4px;
+}
+
+.media-split .card p {
+  font-size: 18px;
+  line-height: 1.22;
+  margin: 0;
 }
 
 .slide-visual {
@@ -264,7 +298,7 @@ body {
   box-shadow: var(--shadow);
   display: block;
   height: auto;
-  max-height: 480px;
+  max-height: 350px;
   object-fit: contain;
   width: 100%;
 }
@@ -475,7 +509,7 @@ body {
   .grid.three,
   .media-split,
   .analogy-layout,
-  .case-study-divider {
+  .case-study-divider .slide-inner {
     grid-template-columns: 1fr;
   }
 
