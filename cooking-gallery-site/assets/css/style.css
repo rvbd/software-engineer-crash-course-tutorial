@@ -80,7 +80,56 @@ a:hover {
     padding: 36px 0 56px;
 }
 
-.hero,
+.hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 320px;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(47, 41, 36, 0.84), rgba(47, 41, 36, 0.46) 48%, rgba(47, 41, 36, 0.12)),
+        url("../images/hero-kitchen-banner.png") center / cover no-repeat;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-soft);
+    color: #ffffff;
+    padding: 38px;
+    margin-bottom: 32px;
+}
+
+.hero > div {
+    max-width: 570px;
+}
+
+.hero .eyebrow {
+    color: #ffe2b8;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.hero h2 {
+    font-size: clamp(2.25rem, 6vw, 4.8rem);
+    line-height: 0.95;
+    margin: 0 0 14px;
+    text-shadow: 0 4px 22px rgba(0, 0, 0, 0.32);
+}
+
+.hero p {
+    max-width: 540px;
+    font-size: 1.08rem;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.34);
+}
+
+.hero .button-primary {
+    background: #ffffff;
+    color: var(--color-primary-dark);
+    font-weight: 700;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
 .dashboard-header {
     display: flex;
     align-items: center;
@@ -94,7 +143,6 @@ a:hover {
     margin-bottom: 32px;
 }
 
-.hero h2,
 .dashboard-header h2 {
     font-size: 2rem;
     margin: 0 0 8px;
@@ -289,6 +337,15 @@ button.button-danger {
     .dashboard-header {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .hero {
+        min-height: 420px;
+        justify-content: flex-end;
+        padding: 28px;
+        background:
+            linear-gradient(180deg, rgba(47, 41, 36, 0.14), rgba(47, 41, 36, 0.88)),
+            url("../images/hero-kitchen-banner.png") center / cover no-repeat;
     }
 
     .recipe-grid,
