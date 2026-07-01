@@ -19,12 +19,12 @@ ON DUPLICATE KEY UPDATE
     status = VALUES(status);
 
 INSERT INTO recipes
-(id, user_id, category_id, title, slug, description, ingredients, cooking_type, difficulty, cooking_time_minutes, status, created_at, updated_at) VALUES
-(1, 2, 1, 'Nasi Goreng Sarapan', 'nasi-goreng-sarapan', 'Nasi goreng cepat untuk pagi hari dengan telur dan daun bawang.', 'Nasi putih\nTelur\nBawang putih\nKecap manis\nDaun bawang', 'Tumis', 'easy', 20, 'approved', '2026-06-01 08:00:00', NULL),
-(2, 2, 4, 'Puding Cokelat Lembut', 'puding-cokelat-lembut', 'Dessert sederhana yang cocok untuk belajar membuat hidangan manis.', 'Susu cair\nCokelat bubuk\nAgar-agar\nGula\nGaram', 'Rebus', 'easy', 25, 'approved', '2026-06-02 10:00:00', NULL),
-(3, 2, 5, 'Soto Ayam Rumahan', 'soto-ayam-rumahan', 'Soto ayam hangat dengan kuah kuning ringan.', 'Ayam\nSerai\nDaun jeruk\nKunyit\nSoun\nTelur rebus', 'Rebus', 'medium', 60, 'approved', '2026-06-03 12:00:00', NULL),
-(4, 2, 6, 'Es Teh Lemon Madu', 'es-teh-lemon-madu', 'Minuman segar untuk menemani resep pedas.', 'Teh hitam\nLemon\nMadu\nEs batu', 'Seduh', 'easy', 10, 'approved', '2026-06-04 14:00:00', NULL),
-(5, 2, 3, 'Ayam Panggang Bumbu Kecap', 'ayam-panggang-bumbu-kecap', 'Resep makan malam yang sedang menunggu approval admin.', 'Ayam\nKecap manis\nBawang merah\nBawang putih\nJeruk nipis', 'Panggang', 'medium', 50, 'pending', '2026-06-05 18:00:00', NULL)
+(id, user_id, category_id, title, slug, description, ingredients, cooking_type, difficulty, cooking_time_minutes, image, status, created_at, updated_at) VALUES
+(1, 2, 1, 'Nasi Goreng Sarapan', 'nasi-goreng-sarapan', 'Nasi goreng cepat untuk pagi hari dengan telur dan daun bawang.', 'Nasi putih\nTelur\nBawang putih\nKecap manis\nDaun bawang', 'Tumis', 'easy', 20, 'nasi-goreng-sarapan.png', 'approved', '2026-06-01 08:00:00', NULL),
+(2, 2, 4, 'Puding Cokelat Lembut', 'puding-cokelat-lembut', 'Dessert sederhana yang cocok untuk belajar membuat hidangan manis.', 'Susu cair\nCokelat bubuk\nAgar-agar\nGula\nGaram', 'Rebus', 'easy', 25, 'puding-cokelat-lembut.png', 'approved', '2026-06-02 10:00:00', NULL),
+(3, 2, 5, 'Soto Ayam Rumahan', 'soto-ayam-rumahan', 'Soto ayam hangat dengan kuah kuning ringan.', 'Ayam\nSerai\nDaun jeruk\nKunyit\nSoun\nTelur rebus', 'Rebus', 'medium', 60, 'soto-ayam-rumahan.png', 'approved', '2026-06-03 12:00:00', NULL),
+(4, 2, 6, 'Es Teh Lemon Madu', 'es-teh-lemon-madu', 'Minuman segar untuk menemani resep pedas.', 'Teh hitam\nLemon\nMadu\nEs batu', 'Seduh', 'easy', 10, 'es-teh-lemon-madu.png', 'approved', '2026-06-04 14:00:00', NULL),
+(5, 2, 3, 'Burger Rumahan Sederhana', 'burger-rumahan-sederhana', 'Resep makan malam sederhana yang sedang menunggu approval admin.', 'Roti burger\nDaging burger\nKeju\nSelada\nTomat\nSaus tomat', 'Panggang', 'easy', 30, 'burger-rumahan-sederhana.png', 'pending', '2026-06-05 18:00:00', NULL)
 ON DUPLICATE KEY UPDATE
     user_id = VALUES(user_id),
     category_id = VALUES(category_id),
@@ -35,6 +35,7 @@ ON DUPLICATE KEY UPDATE
     cooking_type = VALUES(cooking_type),
     difficulty = VALUES(difficulty),
     cooking_time_minutes = VALUES(cooking_time_minutes),
+    image = VALUES(image),
     status = VALUES(status),
     updated_at = VALUES(updated_at);
 
