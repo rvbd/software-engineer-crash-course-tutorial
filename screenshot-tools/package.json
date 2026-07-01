@@ -1,0 +1,17 @@
+{
+  "name": "screenshot-tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "capture": "node scripts/capture-tutorial-screenshots.js",
+    "smoke": "node scripts/smoke-homepage.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}

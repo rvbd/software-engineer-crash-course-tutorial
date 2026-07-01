@@ -636,8 +636,19 @@ const slides = [
     ])
   },
   {
-    className: "chapter",
-    html: `<p class="kicker">Chapter Praktik</p><h2>Mulai Praktik</h2><p>Kita belum langsung membuat login atau resep. Pertama kita belajar fondasi project.</p>${tags(["struktur folder", "file PHP", "include", "config", "bootstrap", "koneksi MySQL"])}`
+    className: "chapter practice-preview",
+    skipStory: true,
+    html: `
+      <div class="chapter-preview-copy">
+        <p class="kicker">Chapter Praktik</p>
+        <h2>Mulai Praktik</h2>
+        <p>Kita belum langsung membuat login atau resep. Pertama kita belajar fondasi project.</p>
+        ${tags(["struktur folder", "file PHP", "include", "config", "bootstrap", "koneksi MySQL"])}
+      </div>
+      <figure class="website-shot hero-shot">
+        <img src="assets/images/site-homepage-hero.png" alt="Screenshot hero homepage Cooking Gallery yang akan dibuat dalam tutorial">
+      </figure>
+    `
   },
   {
     title: "Setup Project di XAMPP",
@@ -1679,6 +1690,13 @@ include __DIR__ . '/includes/header.php';
 <?php include __DIR__ . '/includes/footer.php'; ?>`)
   },
   {
+    title: "Hasil Homepage",
+    html: `<p>Setelah <code>index.php</code> membaca resep approved dari database, homepage mulai terasa seperti website sungguhan.</p>
+      <figure class="website-shot tall">
+        <img src="assets/images/site-homepage-desktop.png" alt="Screenshot homepage Cooking Gallery dengan hero dan kartu resep terbaru">
+      </figure>`
+  },
+  {
     title: "recipe.php: Ambil Detail Resep",
     html: code("php", `<?php
 require_once __DIR__ . '/includes/bootstrap.php';
@@ -1715,6 +1733,13 @@ include __DIR__ . '/includes/header.php';`)
         <p><?= nl2br(htmlspecialchars($comment['body'])) ?></p>
     </article>
 <?php endforeach; ?>`)
+  },
+  {
+    title: "Hasil Detail Resep",
+    html: `<p>Di halaman detail, user bisa membaca resep lengkap dan melihat komentar yang sudah approved.</p>
+      <figure class="website-shot tall">
+        <img src="assets/images/site-recipe-detail.png" alt="Screenshot halaman detail resep Cooking Gallery dengan gambar, bahan, dan komentar">
+      </figure>`
   },
   {
     title: "recipe.php: Submit Komentar",
@@ -1836,6 +1861,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php endif; ?>`)
   },
   {
+    title: "Hasil Register",
+    html: `<p>Register adalah pintu masuk user baru. Di aplikasi ini akun baru belum langsung aktif, tetapi masuk status <code>pending</code>.</p>
+      <figure class="website-shot compact">
+        <img src="assets/images/site-register.png" alt="Screenshot halaman register Cooking Gallery">
+      </figure>`
+  },
+  {
     title: "Login",
     html: `${list([
       "username harus ada",
@@ -1950,6 +1982,13 @@ include __DIR__ . '/includes/header.php';`)
 
     <button type="submit">Login</button>
 </form>`)
+  },
+  {
+    title: "Hasil Login",
+    html: `<p>Login memeriksa username, password, dan status approval. User yang belum approved tidak boleh masuk.</p>
+      <figure class="website-shot compact">
+        <img src="assets/images/site-login.png" alt="Screenshot halaman login Cooking Gallery dengan demo login">
+      </figure>`
   },
   {
     title: "logout.php",
@@ -2085,6 +2124,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="number" name="cooking_time_minutes" placeholder="Menit">
     <button type="submit">Submit Resep</button>
 </form>`)
+  },
+  {
+    title: "Hasil Form Tulis Resep",
+    html: `<p>Form ini mengumpulkan data utama resep. Setelah submit, resep masuk sebagai <code>pending</code> sampai admin memeriksa.</p>
+      <figure class="website-shot tall">
+        <img src="assets/images/site-user-new-recipe.png" alt="Screenshot form tulis resep baru di area user Cooking Gallery">
+      </figure>`
   },
   {
     title: "user/profile.php",
@@ -2227,6 +2273,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $recipes = $recipeObject->getAllForAdmin();`)
+  },
+  {
+    title: "Hasil Admin Moderasi Resep",
+    html: `<p>Di halaman admin, resep pending dan approved terlihat dalam satu table. Admin bisa approve, reject, atau delete.</p>
+      <figure class="website-shot tall">
+        <img src="assets/images/site-admin-recipes.png" alt="Screenshot halaman admin manage recipes Cooking Gallery">
+      </figure>`
   },
   {
     title: "admin/comments.php",
@@ -2635,6 +2688,13 @@ button[type="submit"] {
 }`) 
   },
   {
+    title: "Hasil Responsive",
+    html: `<p>Di mobile, grid turun menjadi satu kolom dan navigasi tetap bisa dibaca. Ini yang kita cek setelah menulis media query.</p>
+      <figure class="website-shot tall">
+        <img src="assets/images/site-homepage-mobile.png" alt="Screenshot homepage Cooking Gallery di viewport mobile">
+      </figure>`
+  },
+  {
     title: "Sesudah Styling",
     html: `${list([
       "homepage punya card resep yang mudah dibaca",
@@ -2942,19 +3002,23 @@ const storyNotes = [
   "Comment class mengambil komentar approved untuk halaman detail resep.",
   "Komentar baru juga pending. Admin nanti memutuskan komentar mana yang tampil.",
   "Homepage dinamis artinya kartu resep tidak ditulis manual lagi, tetapi diambil dari database.",
+  "Screenshot ini menjadi bukti bahwa data, gambar, layout, dan query sudah bertemu di satu halaman.",
   "Halaman detail mengambil id dari URL, lalu mencari resep approved yang sesuai.",
   "Setelah resep ditemukan, kita tampilkan isi dengan escape output supaya aman.",
+  "Di halaman detail, murid bisa melihat kenapa relasi recipes, categories, users, dan comments tadi dibutuhkan.",
   "Form komentar memakai login protection. User harus login sebelum komentarnya disimpan.",
   "Halaman kategori memakai category_id dari URL untuk memfilter resep.",
   "Register adalah proses membuat kartu anggota baru.",
   "Saat register, password tidak disimpan apa adanya. Kita ubah menjadi bentuk hash yang aman.",
   "File register memvalidasi input dulu. Kalau aman, baru panggil User::register.",
   "Form register sederhana saja: username, email, password, dan daftar error bila ada.",
+  "Tampilan register membantu murid melihat bahwa kode validasi tadi akhirnya menjadi form yang bisa dipakai.",
   "Login adalah mencocokkan kartu anggota dan password, lalu memastikan statusnya sudah approved.",
   "Auth class adalah petugas keamanan pintu masuk.",
   "Auth juga menyediakan requireLogin dan requireAdmin supaya halaman terlindungi dengan satu baris jelas.",
   "Login page menerima POST, memanggil Auth::login, lalu redirect jika berhasil.",
   "Form login tidak rumit. Yang penting username dan password dikirim lewat POST.",
+  "Screenshot login menghubungkan session, password verify, dan status approved dengan pengalaman user yang nyata.",
   "Logout menghancurkan session, lalu mengirim user kembali ke homepage.",
   "Melindungi halaman seperti memasang tanda: hanya user login atau admin yang boleh masuk.",
   "Dashboard adalah meja kerja user setelah berhasil masuk.",
@@ -2963,6 +3027,7 @@ const storyNotes = [
   "Form resep adalah kartu kosong yang diisi user sebelum dikirim ke admin.",
   "Saat form resep dikirim, kita validasi judul, siapkan slug sederhana, lalu simpan sebagai pending.",
   "Form resep mengambil kategori dari database, bukan menulis option manual.",
+  "Di sini terlihat kenapa form, kategori dari database, upload gambar, dan status pending menjadi satu alur.",
   "Profile sederhana dulu: tampilkan username dan role dari session.",
   "Admin panel adalah meja pemeriksaan konten.",
   "Admin dashboard menjadi pintu ke halaman users, categories, recipes, dan comments.",
@@ -2971,6 +3036,7 @@ const storyNotes = [
   "Halaman categories memakai pola CRUD sederhana: create, update, delete dalam satu file.",
   "Form kategori dibuat langsung di halaman yang sama supaya alurnya mudah diikuti.",
   "Halaman recipes menjadi meja approval resep: approve, reject, atau delete.",
+  "Screenshot admin memperlihatkan workflow approval dengan jelas: data pending tidak hilang, tetapi menunggu keputusan.",
   "Halaman comments memakai pola yang sama untuk komentar.",
   "Status pending, approved, dan rejected membantu semua orang tahu posisi data.",
   "Komentar juga bagian dari galeri. Karena ditulis user, komentar perlu dijaga.",
@@ -2998,6 +3064,7 @@ const storyNotes = [
   "Admin table harus praktis. Admin butuh membaca status dan menekan tombol aksi tanpa bingung.",
   "Halaman detail resep dan komentar perlu ruang baca yang nyaman karena isinya lebih panjang.",
   "Responsive CSS memastikan tampilan tetap bisa dipakai di layar kecil.",
+  "Screenshot mobile membantu murid mengecek hasil media query dengan mata, bukan hanya percaya pada kode.",
   "Sesudah styling, logic PHP tetap sama. Kita hanya membuat HTML yang sama tampil lebih profesional.",
   "Checklist styling mengingatkan kita bahwa desain bagus harus tetap mudah dipakai.",
   "Setelah styling, kita tambahkan fitur level dua yang terasa nyata untuk aplikasi resep: edit resep dan upload gambar.",
