@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cooking Gallery - Tutorial PHP MySQL</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="assets/css/theme.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides" id="slides"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="assets/js/slides.js"></script>
+  <script src="assets/js/footer.js"></script>
+  <script src="assets/js/fit-slides.js"></script>
+  <script>
+    const mermaidApi = window.mermaid;
+
+    mermaidApi.initialize({
+      startOnLoad: false,
+      theme: "base",
+      themeVariables: {
+        background: "#fffaf3",
+        primaryColor: "#fff4e8",
+        primaryTextColor: "#26211f",
+        primaryBorderColor: "#b5533f",
+        lineColor: "#258e88",
+        secondaryColor: "#f8dfbd",
+        tertiaryColor: "#e9fbf8"
+      }
+    });
+
+    const renderCurrentMermaid = () => {
+      const currentSlide = Reveal.getCurrentSlide();
+      if (!currentSlide) {
+        return;
+      }
+
+      const diagrams = Array.from(currentSlide.querySelectorAll(".mermaid:not([data-processed='true'])"));
+      if (diagrams.length > 0) {
+        mermaidApi.run({ nodes: diagrams }).then(() => {
+          window.applySlideFit?.();
+        });
+      }
+
+      window.applySlideFit?.();
+    };
+
+    Reveal.initialize({
+      hash: true,
+      slideNumber: "c/t",
+      margin: 0.06,
+      width: 1280,
+      height: 720,
+      transition: "slide",
+      backgroundTransition: "fade",
+      plugins: [RevealHighlight, RevealNotes]
+    }).then(() => {
+      renderCurrentMermaid();
+      window.applySlideFit?.();
+      Reveal.on("slidechanged", renderCurrentMermaid);
+    });
+  </script>
+</body>
+</html>

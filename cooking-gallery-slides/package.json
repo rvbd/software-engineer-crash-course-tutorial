@@ -1,0 +1,14 @@
+{
+  "name": "cooking-gallery-slides",
+  "version": "1.0.0",
+  "description": "Reveal.js slides for the Cooking Gallery PHP and MySQL beginner tutorial.",
+  "private": true,
+  "scripts": {
+    "start": "vite --host 127.0.0.1",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^5.4.11"
+  }
+}
