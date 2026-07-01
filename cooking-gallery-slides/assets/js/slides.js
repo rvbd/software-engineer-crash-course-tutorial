@@ -650,6 +650,74 @@ const slides = [
 http://localhost/cooking-gallery`)}`
   },
   {
+    title: "Target Akhir Struktur App",
+    html: `${tree(`cooking-gallery/
+|
++-- index.php
++-- recipe.php
++-- category.php
++-- register.php
++-- login.php
++-- logout.php
++-- seed-admin.php        (sementara, nanti dihapus)
++-- includes/
+|   +-- config.php
+|   +-- bootstrap.php
+|   +-- header.php
+|   +-- footer.php
++-- classes/
+|   +-- Database.php
+|   +-- Validator.php
+|   +-- User.php
+|   +-- Auth.php
+|   +-- Category.php
+|   +-- Recipe.php
+|   +-- Comment.php
++-- user/
++-- admin/
++-- assets/
++-- uploads/
++-- security-lab/`)}${callout("Kita tidak membuat semuanya sekaligus. Ini peta tujuan, supaya setiap file yang muncul nanti punya konteks.")}`
+  },
+  {
+    title: "Alur Saat Browser Membuka index.php",
+    html: `${diagram(`flowchart TD
+    A[Browser buka /index.php] --> B[index.php]
+    B --> C[require includes/bootstrap.php]
+    C --> D[config.php: APP_URL, DB_HOST, DB_NAME]
+    C --> E[session_start]
+    C --> F[buat koneksi PDO]
+    B --> G[set pageTitle]
+    B --> H[include header.php]
+    H --> I[tampilkan HTML pembuka dan menu]
+    B --> J[tampilkan isi halaman]
+    B --> K[include footer.php]`)}${callout("Jadi <code>index.php</code> adalah halaman utama, sedangkan <code>bootstrap.php</code> adalah langkah menyalakan aplikasi.")}`
+  },
+  {
+    title: "Pola Setiap Halaman PHP",
+    html: `${code("php", `<?php
+require_once __DIR__ . '/includes/bootstrap.php';
+
+$pageTitle = 'Judul Halaman';
+
+include __DIR__ . '/includes/header.php';
+?>
+
+<!-- isi halaman di sini -->
+
+<?php include __DIR__ . '/includes/footer.php'; ?>`)}${callout("Untuk file di folder <code>user</code> atau <code>admin</code>, path-nya naik satu folder: <code>__DIR__ . '/../includes/bootstrap.php'</code>.")}`
+  },
+  {
+    title: "Siapa Memanggil Siapa?",
+    html: `${table(["File", "Tugas"], [
+      ["<code>index.php</code>", "Halaman yang diminta browser. Menentukan data dan tampilan yang dibutuhkan."],
+      ["<code>bootstrap.php</code>", "Menyiapkan config, session, class penting, dan koneksi database."],
+      ["<code>header.php</code>", "Membuka HTML, menampilkan menu, dan mulai area konten."],
+      ["<code>footer.php</code>", "Menutup area konten, menampilkan footer, dan memuat JavaScript."],
+      ["<code>classes/*.php</code>", "Tempat query dan logic aplikasi supaya halaman tidak terlalu penuh."]
+    ])}${callout("Kita sengaja membuat halaman memanggil bootstrap secara eksplisit, supaya alurnya terlihat jelas untuk pemula.")}`
+  },
+  {
     title: "Struktur Folder Awal",
     html: `${tree(`cooking-gallery/
 |
@@ -659,6 +727,11 @@ http://localhost/cooking-gallery`)}`
 |   +-- bootstrap.php
 |   +-- header.php
 |   +-- footer.php
++-- classes/
++-- user/
++-- admin/
++-- uploads/
++-- security-lab/
 +-- assets/
     +-- css/
     |   +-- style.css
@@ -733,12 +806,12 @@ require_once __DIR__ . '/config.php';
 session_start();
 
 try {
-    $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
-    $pdo = new PDO($dsn, DB_USER, DB_PASS);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die('Database connection failed: ' . $e->getMessage());
+    $dataSourceName = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+    $databaseConnection = new PDO($dataSourceName, DB_USER, DB_PASS);
+    $databaseConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $databaseConnection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $databaseException) {
+    die('Database connection failed: ' . $databaseException->getMessage());
 }`)}${callout("<code>bootstrap.php</code> memuat config, memulai session, dan menghubungkan PHP ke MySQL.")}`
   },
   {
@@ -895,17 +968,21 @@ include __DIR__ . '/includes/header.php';
   },
   {
     title: "Table categories",
-    html: `${code("sql", `CREATE TABLE categories (
+    html: code("sql", `CREATE TABLE categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(120) NOT NULL UNIQUE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)}${code("sql", `INSERT INTO categories (name, slug) VALUES
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
+  },
+  {
+    title: "Seed Data: categories",
+    html: `${code("sql", `INSERT INTO categories (name, slug) VALUES
 ('Breakfast', 'breakfast'),
 ('Lunch', 'lunch'),
 ('Dinner', 'dinner'),
 ('Dessert', 'dessert'),
 ('Traditional Food', 'traditional-food'),
-('Drinks', 'drinks');`)}`
+('Drinks', 'drinks');`)}${callout("Seed data adalah data awal. Tanpa kategori, form resep nanti tidak punya pilihan kategori.")}`
   },
   {
     title: "Table recipes",
@@ -940,6 +1017,47 @@ include __DIR__ . '/includes/header.php';
     CONSTRAINT fk_comments_recipe FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
     CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
+  },
+  {
+    title: "Test Database Milestone",
+    html: `${ordered([
+      "Buka <code>http://localhost/phpmyadmin</code>.",
+      "Pilih database <code>cooking_gallery</code>.",
+      "Pastikan table <code>users</code>, <code>categories</code>, <code>recipes</code>, dan <code>comments</code> ada.",
+      "Klik table <code>categories</code> dan pastikan data awal sudah masuk."
+    ])}${callout("Kalau table gagal dibuat, baca pesan error SQL-nya dulu. Biasanya typo nama column, koma tertinggal, atau urutan table salah.")}`
+  },
+  {
+    title: "seed-admin.php Sementara",
+    html: `${code("php", `<?php
+require_once __DIR__ . '/includes/bootstrap.php';
+
+$username = 'admin';
+$email = 'admin@example.com';
+$passwordHash = password_hash('admin123', PASSWORD_DEFAULT);
+
+$adminUserStatement = $databaseConnection->prepare("
+    INSERT INTO users (username, email, password_hash, display_name, role, status)
+    VALUES (?, ?, ?, 'Admin', 'admin', 'approved')
+    ON DUPLICATE KEY UPDATE
+        password_hash = VALUES(password_hash),
+        role = 'admin',
+        status = 'approved'
+");
+
+$adminUserStatement->execute([$username, $email, $passwordHash]);
+
+echo 'Admin siap. Username: admin, Password: admin123';`)}${callout("File ini hanya untuk lokal. Setelah admin berhasil dibuat, hapus <code>seed-admin.php</code>. Jangan upload ke hosting.")}`
+  },
+  {
+    title: "Test First Admin",
+    html: `${ordered([
+      "Buka <code>http://localhost/cooking-gallery/seed-admin.php</code>.",
+      "Pastikan muncul pesan admin siap.",
+      "Buka table <code>users</code> di phpMyAdmin.",
+      "Pastikan user <code>admin</code> punya role <code>admin</code> dan status <code>approved</code>.",
+      "Hapus file <code>seed-admin.php</code> setelah dipakai."
+    ])}${callout("Kita butuh admin pertama supaya nanti bisa approve user, resep, komentar, dan mengelola kategori.")}`
   },
   {
     className: "chapter",
@@ -1042,8 +1160,8 @@ class Database
 
     public function __construct()
     {
-        $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
-        $this->connection = new PDO($dsn, DB_USER, DB_PASS);
+        $dataSourceName = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+        $this->connection = new PDO($dataSourceName, DB_USER, DB_PASS);
         $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     }
@@ -1055,6 +1173,109 @@ class Database
 }`)
   },
   {
+    title: "Database Class: Dari Mana DB_HOST?",
+    html: `
+      <p><code>DB_HOST</code>, <code>DB_NAME</code>, <code>DB_USER</code>, dan <code>DB_PASS</code> bukan variable bawaan PHP. Itu constant yang kita buat sendiri di <code>config.php</code>.</p>
+      ${code("php", `// includes/config.php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'cooking_gallery');
+define('DB_USER', 'root');
+define('DB_PASS', '');`)}
+      ${table(["Constant", "Artinya"], [
+        ["<code>DB_HOST</code>", "Alamat server MySQL. Di XAMPP lokal biasanya <code>localhost</code>."],
+        ["<code>DB_NAME</code>", "Nama database yang dibuat di phpMyAdmin."],
+        ["<code>DB_USER</code>", "Username MySQL. Default XAMPP biasanya <code>root</code>."],
+        ["<code>DB_PASS</code>", "Password MySQL. Default XAMPP biasanya kosong."]
+      ])}
+      ${callout("Agar constant ini dikenal oleh class <code>Database</code>, file <code>config.php</code> harus sudah di-<code>require_once</code> sebelum object <code>Database</code> dibuat.")}
+    `
+  },
+  {
+    title: "Kenapa config.php Tidak Di-require di Class?",
+    html: `
+      <p>Secara teknis, <code>Database.php</code> bisa saja melakukan <code>require_once</code> ke <code>config.php</code>. Tapi kita sengaja memuatnya dari luar, lewat <code>bootstrap.php</code>.</p>
+      ${table(["Pilihan", "Efek"], [
+        ["<code>require_once</code> di <code>Database.php</code>", "Class menjadi tergantung langsung pada lokasi file config."],
+        ["<code>require_once</code> di <code>bootstrap.php</code>", "Bootstrap menjadi satu pintu masuk yang menyiapkan config, session, dan koneksi."]
+      ])}
+      ${callout("Prinsipnya: class <code>Database</code> fokus membuat koneksi. File <code>bootstrap.php</code> fokus menyiapkan aplikasi sebelum halaman berjalan.")}
+    `
+  },
+  {
+    title: "Database Class: Property dan Constructor",
+    html: `
+      ${code("php", `private PDO $connection;
+
+public function __construct()
+{
+    $dataSourceName = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+    $this->connection = new PDO($dataSourceName, DB_USER, DB_PASS);
+}`)}
+      ${table(["Baris", "Penjelasan"], [
+        ["<code>private PDO $connection;</code>", "Class ini punya property private bernama <code>$connection</code>. Isinya harus object <code>PDO</code>."],
+        ["<code>__construct()</code>", "Method khusus yang otomatis berjalan saat <code>new Database()</code> dipanggil."],
+        ["<code>$dataSourceName = ...</code>", "<em>Data Source Name</em>: string alamat tujuan koneksi. Isinya driver MySQL, host, nama database, dan charset."],
+        ["<code>charset=utf8mb4</code>", "Supaya data teks aman untuk karakter lengkap, termasuk emoji dan huruf non-Latin."],
+        ["<code>new PDO(...)</code>", "Membuka koneksi dari PHP ke MySQL memakai DSN, username, dan password."]
+      ])}
+    `
+  },
+  {
+    title: "Apa Itu PDO?",
+    html: `
+      <p><code>PDO</code> adalah class bawaan PHP untuk berbicara dengan database.</p>
+      ${cards([
+        { title: "P", body: "PHP" },
+        { title: "D", body: "Data" },
+        { title: "O", body: "Objects" }
+      ], "three")}
+      ${code("php", `$this->connection = new PDO($dataSourceName, DB_USER, DB_PASS);`)}
+      ${callout("Kalau koneksi berhasil, <code>$this->connection</code> berisi object PDO. Nanti object ini dipakai untuk menjalankan query SQL.")}
+    `
+  },
+  {
+    title: "PDO Attribute: Error Mode",
+    html: `
+      ${code("php", `$this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);`)}
+      ${table(["Bagian", "Penjelasan"], [
+        ["<code>$this->connection</code>", "Object PDO yang sudah terhubung ke database."],
+        ["<code>setAttribute(...)</code>", "Mengubah setting internal PDO."],
+        ["<code>PDO::ATTR_ERRMODE</code>", "Setting tentang cara PDO melaporkan error."],
+        ["<code>PDO::ERRMODE_EXCEPTION</code>", "Kalau query gagal, PDO akan melempar exception, bukan diam-diam gagal."]
+      ])}
+      ${callout("Mode exception membuat error database lebih mudah ditemukan saat belajar dan lebih mudah ditangani dengan <code>try/catch</code>.")}
+    `
+  },
+  {
+    title: "PDO Attribute: Fetch Mode",
+    html: `
+      ${code("php", `$this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);`)}
+      <p>Baris ini menentukan bentuk default data saat kita mengambil hasil query.</p>
+      ${table(["Mode", "Hasil"], [
+        ["Tanpa <code>FETCH_ASSOC</code>", "Data bisa punya index angka dan nama column sekaligus."],
+        ["Dengan <code>FETCH_ASSOC</code>", "Data menjadi associative array: key-nya nama column."]
+      ])}
+      ${code("php", `$recipe['title'];
+$recipe['description'];`)}
+      ${callout("Dengan <code>PDO::FETCH_ASSOC</code>, kode kita lebih enak dibaca karena memakai nama column, bukan nomor urutan column.")}
+    `
+  },
+  {
+    title: "getConnection(): Mengambil Koneksi",
+    html: `
+      ${code("php", `public function getConnection(): PDO
+{
+    return $this->connection;
+}`)}
+      ${table(["Baris", "Penjelasan"], [
+        ["<code>public function getConnection()</code>", "Method ini boleh dipanggil dari luar class."],
+        ["<code>: PDO</code>", "Return type. Method ini berjanji mengembalikan object PDO."],
+        ["<code>return $this->connection;</code>", "Mengirim object koneksi yang tadi dibuat di constructor."]
+      ])}
+      ${callout("Jadi alurnya: <code>new Database()</code> membuat koneksi, lalu <code>getConnection()</code> mengambil koneksi itu agar bisa dipakai class lain.")}
+    `
+  },
+  {
     title: "Update bootstrap.php",
     html: `${code("php", `<?php
 
@@ -1064,7 +1285,40 @@ require_once __DIR__ . '/../classes/Database.php';
 session_start();
 
 $database = new Database();
-$pdo = $database->getConnection();`)}${callout("Sekarang koneksi database dibuat melalui class <code>Database</code>.")}`
+$databaseConnection = $database->getConnection();`)}${callout("Sekarang koneksi database dibuat melalui class <code>Database</code>.")}`
+  },
+  {
+    title: "bootstrap.php Versi Akhir",
+    html: `${code("php", `<?php
+
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../classes/Database.php';
+require_once __DIR__ . '/../classes/Validator.php';
+require_once __DIR__ . '/../classes/User.php';
+require_once __DIR__ . '/../classes/Auth.php';
+require_once __DIR__ . '/../classes/Category.php';
+require_once __DIR__ . '/../classes/Recipe.php';
+require_once __DIR__ . '/../classes/Comment.php';
+
+session_start();
+
+$database = new Database();
+$databaseConnection = $database->getConnection();`)}${callout("Dengan cara ini, halaman cukup memanggil <code>bootstrap.php</code>. Setelah itu semua class penting sudah dikenal PHP.")}
+    `
+  },
+  {
+    title: "Constructor Injection",
+    html: `
+      <p>Setiap class yang butuh database menerima object <code>PDO</code> dari luar.</p>
+      ${code("php", `$recipeObject = new Recipe($databaseConnection);
+$userObject = new User($databaseConnection);
+$auth = new Auth($databaseConnection);`)}
+      ${table(["Kenapa?", "Manfaat"], [
+        ["Tidak membuat koneksi sendiri-sendiri", "Satu koneksi dari <code>bootstrap.php</code> dipakai bersama."],
+        ["Class lebih jelas kebutuhannya", "Kalau constructor butuh <code>PDO</code>, kita langsung tahu class ini memakai database."],
+        ["Lebih mudah dirawat", "Setting koneksi tetap di satu tempat."]
+      ])}
+    `
   },
   {
     title: "Validator Class",
@@ -1089,37 +1343,115 @@ class Validator
 }`)}${callout("Jangan percaya input user tanpa validasi.")}`
   },
   {
+    title: "User Class: Register dan Login Data",
+    html: code("php", `class User
+{
+    private PDO $databaseConnection;
+
+    public function __construct(PDO $databaseConnection)
+    {
+        $this->databaseConnection = $databaseConnection;
+    }
+
+    public function findByUsername(string $username): ?array
+    {
+        $userLookupStatement = $this->databaseConnection->prepare("SELECT * FROM users WHERE username = ?");
+        $userLookupStatement->execute([$username]);
+        $user = $userLookupStatement->fetch();
+
+        return $user ?: null;
+    }
+
+    public function register(string $username, string $email, string $password): bool
+    {
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        $createUserStatement = $this->databaseConnection->prepare("
+            INSERT INTO users (username, email, password_hash, display_name, status)
+            VALUES (?, ?, ?, ?, 'pending')
+        ");
+
+        return $createUserStatement->execute([$username, $email, $passwordHash, $username]);
+    }
+}`)
+  },
+  {
+    title: "User Class: Admin Moderation",
+    html: code("php", `public function getAll(): array
+{
+    return $this->databaseConnection->query("SELECT * FROM users ORDER BY created_at DESC")->fetchAll();
+}
+
+public function updateStatus(int $userId, string $status): bool
+{
+    $updateUserStatusStatement = $this->databaseConnection->prepare("UPDATE users SET status = ? WHERE id = ?");
+    return $updateUserStatusStatement->execute([$status, $userId]);
+}
+
+public function updateRole(int $userId, string $role): bool
+{
+    $updateUserRoleStatement = $this->databaseConnection->prepare("UPDATE users SET role = ? WHERE id = ?");
+    return $updateUserRoleStatement->execute([$role, $userId]);
+}
+
+public function delete(int $userId): bool
+{
+    $deleteUserStatement = $this->databaseConnection->prepare("DELETE FROM users WHERE id = ?");
+    return $deleteUserStatement->execute([$userId]);
+}`) 
+  },
+  {
     title: "Category Class",
     html: code("php", `class Category
 {
-    private PDO $db;
+    private PDO $databaseConnection;
 
-    public function __construct(PDO $db)
+    public function __construct(PDO $databaseConnection)
     {
-        $this->db = $db;
+        $this->databaseConnection = $databaseConnection;
     }
 
     public function getAll(): array
     {
-        $stmt = $this->db->query("SELECT * FROM categories ORDER BY name ASC");
-        return $stmt->fetchAll();
+        $allCategoriesStatement = $this->databaseConnection->query("SELECT * FROM categories ORDER BY name ASC");
+        return $allCategoriesStatement->fetchAll();
     }
 }`)
+  },
+  {
+    title: "Category Class: CRUD Admin",
+    html: code("php", `public function create(string $name, string $slug): bool
+{
+    $createCategoryStatement = $this->databaseConnection->prepare("INSERT INTO categories (name, slug) VALUES (?, ?)");
+    return $createCategoryStatement->execute([$name, $slug]);
+}
+
+public function update(int $categoryId, string $name, string $slug): bool
+{
+    $updateCategoryStatement = $this->databaseConnection->prepare("UPDATE categories SET name = ?, slug = ? WHERE id = ?");
+    return $updateCategoryStatement->execute([$name, $slug, $categoryId]);
+}
+
+public function delete(int $categoryId): bool
+{
+    $deleteCategoryStatement = $this->databaseConnection->prepare("DELETE FROM categories WHERE id = ?");
+    return $deleteCategoryStatement->execute([$categoryId]);
+}`) 
   },
   {
     title: "Recipe Class",
     html: code("php", `class Recipe
 {
-    private PDO $db;
+    private PDO $databaseConnection;
 
-    public function __construct(PDO $db)
+    public function __construct(PDO $databaseConnection)
     {
-        $this->db = $db;
+        $this->databaseConnection = $databaseConnection;
     }
 
     public function getLatestApproved(int $limit = 10): array
     {
-        $stmt = $this->db->prepare("
+        $approvedRecipesStatement = $this->databaseConnection->prepare("
             SELECT recipes.*, users.display_name, categories.name AS category_name
             FROM recipes
             JOIN users ON users.id = recipes.user_id
@@ -1128,11 +1460,182 @@ class Validator
             ORDER BY recipes.created_at DESC
             LIMIT ?
         ");
-        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll();
+        $approvedRecipesStatement->bindValue(1, $limit, PDO::PARAM_INT);
+        $approvedRecipesStatement->execute();
+        return $approvedRecipesStatement->fetchAll();
     }
 }`)
+  },
+  {
+    title: "Apa Itu Prepared Statement?",
+    html: `
+      <p><strong>Statement</strong> adalah object PDO yang mewakili query SQL yang sudah disiapkan.</p>
+      ${table(["Nama", "Artinya"], [
+        ["<code>$approvedRecipesStatement</code>", "Statement untuk mengambil resep yang sudah approved."],
+        ["<code>$userLookupStatement</code>", "Statement untuk mencari user."],
+        ["<code>$createCommentStatement</code>", "Statement untuk menyimpan komentar baru."],
+        ["<code>prepare(...)</code>", "Menyiapkan SQL dan membuat object statement."],
+        ["<code>execute()</code>", "Menjalankan statement."],
+        ["<code>fetchAll()</code>", "Mengambil semua hasil query."]
+      ])}
+      ${callout("Di banyak project nyata kamu akan melihat nama pendek <code>$stmt</code>. Di materi ini kita pakai nama yang lebih jelas supaya mudah dibaca.")}
+    `
+  },
+  {
+    title: "Alur Prepared Statement",
+    html: `${code("php", `$approvedRecipesStatement = $this->databaseConnection->prepare("SELECT * FROM recipes LIMIT ?");
+$approvedRecipesStatement->bindValue(1, $limit, PDO::PARAM_INT);
+$approvedRecipesStatement->execute();
+$recipes = $approvedRecipesStatement->fetchAll();`)}${ordered([
+      "<code>prepare()</code>: SQL disiapkan dulu, parameter masih berupa tanda <code>?</code>.",
+      "<code>bindValue()</code>: isi tanda <code>?</code> dengan nilai yang aman dan tipe yang jelas.",
+      "<code>execute()</code>: query benar-benar dikirim ke database.",
+      "<code>fetchAll()</code>: hasil query diambil menjadi array."
+    ])}`
+  },
+  {
+    title: "Recipe Class: Detail dan Category",
+    html: code("php", `public function findApprovedById(int $recipeId): ?array
+{
+    $recipeDetailStatement = $this->databaseConnection->prepare("
+        SELECT recipes.*, users.display_name, categories.name AS category_name
+        FROM recipes
+        JOIN users ON users.id = recipes.user_id
+        JOIN categories ON categories.id = recipes.category_id
+        WHERE recipes.id = ? AND recipes.status = 'approved'
+    ");
+    $recipeDetailStatement->execute([$recipeId]);
+    $recipe = $recipeDetailStatement->fetch();
+
+    return $recipe ?: null;
+}
+
+public function getApprovedByCategory(int $categoryId): array
+{
+    $categoryRecipesStatement = $this->databaseConnection->prepare("
+        SELECT * FROM recipes
+        WHERE category_id = ? AND status = 'approved'
+        ORDER BY created_at DESC
+    ");
+    $categoryRecipesStatement->execute([$categoryId]);
+    return $categoryRecipesStatement->fetchAll();
+}`) 
+  },
+  {
+    title: "Recipe Class: Submit dan Moderasi",
+    html: code("php", `public function create(array $data): bool
+{
+    $createRecipeStatement = $this->databaseConnection->prepare("
+        INSERT INTO recipes
+        (user_id, category_id, title, slug, description, ingredients, cooking_type, difficulty, cooking_time_minutes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+    ");
+
+    return $createRecipeStatement->execute([
+        $data['user_id'], $data['category_id'], $data['title'], $data['slug'],
+        $data['description'], $data['ingredients'], $data['cooking_type'],
+        $data['difficulty'], $data['cooking_time_minutes']
+    ]);
+}
+
+public function updateStatus(int $recipeId, string $status): bool
+{
+    $updateRecipeStatusStatement = $this->databaseConnection->prepare("UPDATE recipes SET status = ?, updated_at = NOW() WHERE id = ?");
+    return $updateRecipeStatusStatement->execute([$status, $recipeId]);
+}`) 
+  },
+  {
+    title: "Recipe Class: Resep Milik User",
+    html: code("php", `public function getByUser(int $userId): array
+{
+    $userRecipesStatement = $this->databaseConnection->prepare("
+        SELECT recipes.*, categories.name AS category_name
+        FROM recipes
+        JOIN categories ON categories.id = recipes.category_id
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+    ");
+    $userRecipesStatement->execute([$userId]);
+    return $userRecipesStatement->fetchAll();
+}
+
+public function delete(int $recipeId): bool
+{
+    $deleteRecipeStatement = $this->databaseConnection->prepare("DELETE FROM recipes WHERE id = ?");
+    return $deleteRecipeStatement->execute([$recipeId]);
+}`) 
+  },
+  {
+    title: "Recipe Class: Data Admin",
+    html: code("php", `public function getAllForAdmin(): array
+{
+    return $this->databaseConnection->query("
+        SELECT recipes.*, users.username, categories.name AS category_name
+        FROM recipes
+        JOIN users ON users.id = recipes.user_id
+        JOIN categories ON categories.id = recipes.category_id
+        ORDER BY recipes.created_at DESC
+    ")->fetchAll();
+}`) 
+  },
+  {
+    title: "Comment Class",
+    html: code("php", `class Comment
+{
+    private PDO $databaseConnection;
+
+    public function __construct(PDO $databaseConnection)
+    {
+        $this->databaseConnection = $databaseConnection;
+    }
+
+    public function getApprovedByRecipe(int $recipeId): array
+    {
+        $approvedCommentsStatement = $this->databaseConnection->prepare("
+            SELECT comments.*, users.display_name
+            FROM comments
+            JOIN users ON users.id = comments.user_id
+            WHERE recipe_id = ? AND comments.status = 'approved'
+            ORDER BY comments.created_at DESC
+        ");
+        $approvedCommentsStatement->execute([$recipeId]);
+        return $approvedCommentsStatement->fetchAll();
+    }
+}`)
+  },
+  {
+    title: "Comment Class: Submit dan Moderasi",
+    html: code("php", `public function create(int $recipeId, int $userId, string $commentBody): bool
+{
+    $createCommentStatement = $this->databaseConnection->prepare("
+        INSERT INTO comments (recipe_id, user_id, body, status)
+        VALUES (?, ?, ?, 'pending')
+    ");
+    return $createCommentStatement->execute([$recipeId, $userId, $commentBody]);
+}
+
+public function getAll(): array
+{
+    return $this->databaseConnection->query("
+        SELECT comments.*, recipes.title, users.username
+        FROM comments
+        JOIN recipes ON recipes.id = comments.recipe_id
+        JOIN users ON users.id = comments.user_id
+        ORDER BY comments.created_at DESC
+    ")->fetchAll();
+}
+
+public function updateStatus(int $commentId, string $status): bool
+{
+    $updateCommentStatusStatement = $this->databaseConnection->prepare("UPDATE comments SET status = ? WHERE id = ?");
+    return $updateCommentStatusStatement->execute([$status, $commentId]);
+}
+
+public function delete(int $commentId): bool
+{
+    $deleteCommentStatement = $this->databaseConnection->prepare("DELETE FROM comments WHERE id = ?");
+    return $deleteCommentStatement->execute([$commentId]);
+}`) 
   },
   {
     title: "Homepage dari Database",
@@ -1141,8 +1644,8 @@ require_once __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/classes/Recipe.php';
 
 $pageTitle = 'Home';
-$recipeObj = new Recipe($pdo);
-$recipes = $recipeObj->getLatestApproved(10);
+$recipeObject = new Recipe($databaseConnection);
+$recipes = $recipeObject->getLatestApproved(10);
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -1162,6 +1665,87 @@ include __DIR__ . '/includes/header.php';
 <?php include __DIR__ . '/includes/footer.php'; ?>`)
   },
   {
+    title: "recipe.php: Ambil Detail Resep",
+    html: code("php", `<?php
+require_once __DIR__ . '/includes/bootstrap.php';
+
+$recipeObject = new Recipe($databaseConnection);
+$commentObject = new Comment($databaseConnection);
+
+$recipeId = (int) ($_GET['id'] ?? 0);
+$recipe = $recipeObject->findApprovedById($recipeId);
+
+if (!$recipe) {
+    http_response_code(404);
+    die('Resep tidak ditemukan.');
+}
+
+$comments = $commentObject->getApprovedByRecipe($recipeId);
+$pageTitle = $recipe['title'];
+
+include __DIR__ . '/includes/header.php';`)
+  },
+  {
+    title: "recipe.php: Tampilkan dan Komentar",
+    html: code("php", `<h2><?= htmlspecialchars($recipe['title']) ?></h2>
+<p><?= htmlspecialchars($recipe['category_name']) ?></p>
+<p><?= nl2br(htmlspecialchars($recipe['description'])) ?></p>
+
+<h3>Bahan</h3>
+<p><?= nl2br(htmlspecialchars($recipe['ingredients'])) ?></p>
+
+<h3>Komentar</h3>
+<?php foreach ($comments as $comment): ?>
+    <article class="comment">
+        <strong><?= htmlspecialchars($comment['display_name']) ?></strong>
+        <p><?= nl2br(htmlspecialchars($comment['body'])) ?></p>
+    </article>
+<?php endforeach; ?>`)
+  },
+  {
+    title: "recipe.php: Submit Komentar",
+    html: `${code("php", `if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $auth = new Auth($databaseConnection);
+    $auth->requireLogin();
+
+    $commentBody = trim($_POST['body'] ?? '');
+
+    if (Validator::required($commentBody)) {
+        $commentObject->create($recipeId, $_SESSION['user_id'], $commentBody);
+        header('Location: ' . APP_URL . '/recipe.php?id=' . $recipeId);
+        exit;
+    }
+}`)}${callout("Komentar baru masuk sebagai <code>pending</code>. Admin harus approve sebelum komentar tampil.")}
+    `
+  },
+  {
+    title: "category.php",
+    html: code("php", `<?php
+require_once __DIR__ . '/includes/bootstrap.php';
+
+$categoryId = (int) ($_GET['id'] ?? 0);
+$recipeObject = new Recipe($databaseConnection);
+$recipes = $recipeObject->getApprovedByCategory($categoryId);
+
+$pageTitle = 'Kategori';
+include __DIR__ . '/includes/header.php';
+?>
+
+<h2>Resep Kategori</h2>
+<section class="recipe-grid">
+    <?php foreach ($recipes as $recipe): ?>
+        <article class="recipe-card">
+            <h3>
+                <a href="<?= APP_URL ?>/recipe.php?id=<?= $recipe['id'] ?>">
+                    <?= htmlspecialchars($recipe['title']) ?>
+                </a>
+            </h3>
+            <p><?= htmlspecialchars($recipe['description']) ?></p>
+        </article>
+    <?php endforeach; ?>
+</section>`)
+  },
+  {
     title: "Register User",
     html: `${list([
       "username wajib",
@@ -1177,18 +1761,65 @@ include __DIR__ . '/includes/header.php';
 {
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-    $stmt = $this->db->prepare("
+    $createUserStatement = $this->databaseConnection->prepare("
         INSERT INTO users (username, email, password_hash, display_name, status)
         VALUES (?, ?, ?, ?, 'pending')
     ");
 
-    return $stmt->execute([
+    return $createUserStatement->execute([
         $username,
         $email,
         $passwordHash,
         $username
     ]);
 }`)
+  },
+  {
+    title: "register.php: Proses POST",
+    html: code("php", `<?php
+require_once __DIR__ . '/includes/bootstrap.php';
+
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if (!Validator::required($username)) $errors[] = 'Username wajib diisi.';
+    if (!Validator::email($email)) $errors[] = 'Email tidak valid.';
+    if (!Validator::minLength($password, 6)) $errors[] = 'Password minimal 6 karakter.';
+
+    if (!$errors) {
+        $userObject = new User($databaseConnection);
+        $userObject->register($username, $email, $password);
+        header('Location: ' . APP_URL . '/login.php');
+        exit;
+    }
+}`)
+  },
+  {
+    title: "register.php: Form",
+    html: code("php", `<form method="post">
+    <label>Username</label>
+    <input type="text" name="username">
+
+    <label>Email</label>
+    <input type="email" name="email">
+
+    <label>Password</label>
+    <input type="password" name="password">
+
+    <button type="submit">Register</button>
+</form>
+
+<?php if ($errors): ?>
+    <ul class="errors">
+        <?php foreach ($errors as $error): ?>
+            <li><?= htmlspecialchars($error) ?></li>
+        <?php endforeach; ?>
+    </ul>
+<?php endif; ?>`)
   },
   {
     title: "Login",
@@ -1204,11 +1835,31 @@ $_SESSION['user_id'] = $user['id'];`)}`
     title: "Auth Class",
     html: code("php", `class Auth
 {
-    private PDO $db;
+    private PDO $databaseConnection;
 
-    public function __construct(PDO $db)
+    public function __construct(PDO $databaseConnection)
     {
-        $this->db = $db;
+        $this->databaseConnection = $databaseConnection;
+    }
+
+    public function login(string $username, string $password): bool
+    {
+        $loginUserStatement = $this->databaseConnection->prepare("
+            SELECT * FROM users
+            WHERE username = ? AND status = 'approved'
+        ");
+        $loginUserStatement->execute([$username]);
+        $user = $loginUserStatement->fetch();
+
+        if (!$user || !password_verify($password, $user['password_hash'])) {
+            return false;
+        }
+
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['role'] = $user['role'];
+
+        return true;
     }
 
     public function check(): bool
@@ -1226,6 +1877,77 @@ $_SESSION['user_id'] = $user['id'];`)}`
         return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
     }
 }`)
+  },
+  {
+    title: "Auth Class: Page Protection",
+    html: code("php", `public function requireLogin(): void
+{
+    if (!$this->check()) {
+        header('Location: ' . APP_URL . '/login.php');
+        exit;
+    }
+}
+
+public function requireAdmin(): void
+{
+    $this->requireLogin();
+
+    if (!$this->isAdmin()) {
+        header('Location: ' . APP_URL);
+        exit;
+    }
+}`) 
+  },
+  {
+    title: "login.php",
+    html: code("php", `<?php
+require_once __DIR__ . '/includes/bootstrap.php';
+
+$error = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $auth = new Auth($databaseConnection);
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if ($auth->login($username, $password)) {
+        header('Location: ' . APP_URL . '/user/dashboard.php');
+        exit;
+    }
+
+    $error = 'Username, password, atau status user belum benar.';
+}
+
+$pageTitle = 'Login';
+include __DIR__ . '/includes/header.php';`)
+  },
+  {
+    title: "login.php: Form",
+    html: code("php", `<?php if ($error): ?>
+    <p class="error"><?= htmlspecialchars($error) ?></p>
+<?php endif; ?>
+
+<form method="post">
+    <label>Username</label>
+    <input type="text" name="username">
+
+    <label>Password</label>
+    <input type="password" name="password">
+
+    <button type="submit">Login</button>
+</form>`)
+  },
+  {
+    title: "logout.php",
+    html: `${code("php", `<?php
+require_once __DIR__ . '/includes/bootstrap.php';
+
+$auth = new Auth($databaseConnection);
+$auth->logout();
+
+header('Location: ' . APP_URL);
+exit;`)}${callout("Setelah logout, session dihancurkan lalu user dikirim kembali ke homepage.")}
+    `
   },
   {
     title: "Melindungi Halaman",
@@ -1252,8 +1974,116 @@ if (!$auth->isAdmin()) {
     ])}`
   },
   {
+    title: "user/dashboard.php",
+    html: code("php", `<?php
+require_once __DIR__ . '/../includes/bootstrap.php';
+
+$auth = new Auth($databaseConnection);
+$auth->requireLogin();
+
+$recipeObject = new Recipe($databaseConnection);
+$recipes = $recipeObject->getByUser($_SESSION['user_id']);
+
+$pageTitle = 'Dashboard';
+include __DIR__ . '/../includes/header.php';
+?>
+
+<h2>Dashboard</h2>
+<p>Halo, <?= htmlspecialchars($_SESSION['username']) ?></p>
+
+<a href="<?= APP_URL ?>/user/new-recipe.php">Tulis Resep Baru</a>`)
+  },
+  {
+    title: "user/my-recipes.php",
+    html: code("php", `<table>
+    <tr>
+        <th>Judul</th>
+        <th>Kategori</th>
+        <th>Status</th>
+    </tr>
+    <?php foreach ($recipes as $recipe): ?>
+        <tr>
+            <td><?= htmlspecialchars($recipe['title']) ?></td>
+            <td><?= htmlspecialchars($recipe['category_name']) ?></td>
+            <td><?= htmlspecialchars($recipe['status']) ?></td>
+        </tr>
+    <?php endforeach; ?>
+</table>`)
+  },
+  {
     title: "Form New Recipe",
     html: `${tags(["title", "category", "description", "ingredients", "cooking_type", "difficulty", "cooking_time_minutes", "image optional"])}${callout("Setelah submit, status resep adalah <code>pending</code>. Resep belum tampil sebelum admin approve.")}`
+  },
+  {
+    title: "user/new-recipe.php: Proses POST",
+    html: code("php", `<?php
+require_once __DIR__ . '/../includes/bootstrap.php';
+
+$auth = new Auth($databaseConnection);
+$auth->requireLogin();
+
+$categoryObject = new Category($databaseConnection);
+$recipeObject = new Recipe($databaseConnection);
+$categories = $categoryObject->getAll();
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = trim($_POST['title'] ?? '');
+
+    if (!Validator::required($title)) {
+        $errors[] = 'Judul wajib diisi.';
+    }
+
+    if (!$errors) {
+        $recipeObject->create([
+            'user_id' => $_SESSION['user_id'],
+            'category_id' => (int) $_POST['category_id'],
+            'title' => $title,
+            'slug' => strtolower(str_replace(' ', '-', $title)) . '-' . time(),
+            'description' => trim($_POST['description'] ?? ''),
+            'ingredients' => trim($_POST['ingredients'] ?? ''),
+            'cooking_type' => trim($_POST['cooking_type'] ?? ''),
+            'difficulty' => $_POST['difficulty'] ?? 'easy',
+            'cooking_time_minutes' => (int) $_POST['cooking_time_minutes']
+        ]);
+    }
+}`)
+  },
+  {
+    title: "user/new-recipe.php: Form",
+    html: code("php", `<form method="post">
+    <input type="text" name="title" placeholder="Judul resep">
+    <select name="category_id">
+        <?php foreach ($categories as $category): ?>
+            <option value="<?= $category['id'] ?>">
+                <?= htmlspecialchars($category['name']) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+    <textarea name="description" placeholder="Deskripsi"></textarea>
+    <textarea name="ingredients" placeholder="Bahan"></textarea>
+    <input type="text" name="cooking_type" placeholder="Jenis masakan">
+    <select name="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+    </select>
+    <input type="number" name="cooking_time_minutes" placeholder="Menit">
+    <button type="submit">Submit Resep</button>
+</form>`)
+  },
+  {
+    title: "user/profile.php",
+    html: `${code("php", `<?php
+require_once __DIR__ . '/../includes/bootstrap.php';
+
+$auth = new Auth($databaseConnection);
+$auth->requireLogin();
+
+$pageTitle = 'Profil';
+include __DIR__ . '/../includes/header.php';`)}${code("php", `<h2>Profil</h2>
+<p>Username: <?= htmlspecialchars($_SESSION['username']) ?></p>
+<p>Role: <?= htmlspecialchars($_SESSION['role']) ?></p>`)}`
   },
   {
     title: "Admin Panel",
@@ -1263,6 +2093,144 @@ if (!$auth->isAdmin()) {
 /admin/recipes.php
 /admin/comments.php
 /admin/categories.php`)}${tags(["approve user", "reject user", "approve recipe", "reject recipe", "approve comment", "reject comment"])}`
+  },
+  {
+    title: "admin/index.php",
+    html: code("php", `<?php
+require_once __DIR__ . '/../includes/bootstrap.php';
+
+$auth = new Auth($databaseConnection);
+$auth->requireAdmin();
+
+$pageTitle = 'Admin Dashboard';
+include __DIR__ . '/../includes/header.php';
+?>
+
+<h2>Admin Dashboard</h2>
+<nav class="admin-nav">
+    <a href="<?= APP_URL ?>/admin/users.php">Users</a>
+    <a href="<?= APP_URL ?>/admin/categories.php">Categories</a>
+    <a href="<?= APP_URL ?>/admin/recipes.php">Recipes</a>
+    <a href="<?= APP_URL ?>/admin/comments.php">Comments</a>
+</nav>`)
+  },
+  {
+    title: "admin/users.php: POST Action",
+    html: code("php", `<?php
+require_once __DIR__ . '/../includes/bootstrap.php';
+
+$auth = new Auth($databaseConnection);
+$auth->requireAdmin();
+
+$userObject = new User($databaseConnection);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $userId = (int) $_POST['id'];
+    $userAction = $_POST['action'];
+
+    if ($userAction === 'approve') $userObject->updateStatus($userId, 'approved');
+    if ($userAction === 'reject') $userObject->updateStatus($userId, 'rejected');
+    if ($userAction === 'make_admin') $userObject->updateRole($userId, 'admin');
+    if ($userAction === 'delete') $userObject->delete($userId);
+
+    header('Location: ' . APP_URL . '/admin/users.php');
+    exit;
+}
+
+$users = $userObject->getAll();`)
+  },
+  {
+    title: "admin/users.php: Table",
+    html: code("php", `<table>
+<?php foreach ($users as $user): ?>
+    <tr>
+        <td><?= htmlspecialchars($user['username']) ?></td>
+        <td><?= htmlspecialchars($user['role']) ?></td>
+        <td><?= htmlspecialchars($user['status']) ?></td>
+        <td>
+            <form method="post">
+                <input type="hidden" name="id" value="<?= $user['id'] ?>">
+                <button name="action" value="approve">Approve</button>
+                <button name="action" value="reject">Reject</button>
+                <button name="action" value="make_admin">Make Admin</button>
+                <button name="action" value="delete">Delete</button>
+            </form>
+        </td>
+    </tr>
+<?php endforeach; ?>
+</table>`)
+  },
+  {
+    title: "admin/categories.php",
+    html: code("php", `$categoryObject = new Category($databaseConnection);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $categoryAction = $_POST['action'];
+    $categoryId = (int) ($_POST['id'] ?? 0);
+    $name = trim($_POST['name'] ?? '');
+    $slug = strtolower(str_replace(' ', '-', $name));
+
+    if ($categoryAction === 'create') $categoryObject->create($name, $slug);
+    if ($categoryAction === 'update') $categoryObject->update($categoryId, $name, $slug);
+    if ($categoryAction === 'delete') $categoryObject->delete($categoryId);
+
+    header('Location: ' . APP_URL . '/admin/categories.php');
+    exit;
+}
+
+$categories = $categoryObject->getAll();`)
+  },
+  {
+    title: "admin/categories.php: Form",
+    html: code("php", `<form method="post">
+    <input type="text" name="name" placeholder="Nama kategori">
+    <button name="action" value="create">Tambah</button>
+</form>
+
+<?php foreach ($categories as $category): ?>
+    <form method="post">
+        <input type="hidden" name="id" value="<?= $category['id'] ?>">
+        <input type="text" name="name" value="<?= htmlspecialchars($category['name']) ?>">
+        <button name="action" value="update">Update</button>
+        <button name="action" value="delete">Delete</button>
+    </form>
+<?php endforeach; ?>`)
+  },
+  {
+    title: "admin/recipes.php",
+    html: code("php", `$recipeObject = new Recipe($databaseConnection);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $recipeId = (int) $_POST['id'];
+    $recipeAction = $_POST['action'];
+
+    if ($recipeAction === 'approve') $recipeObject->updateStatus($recipeId, 'approved');
+    if ($recipeAction === 'reject') $recipeObject->updateStatus($recipeId, 'rejected');
+    if ($recipeAction === 'delete') $recipeObject->delete($recipeId);
+
+    header('Location: ' . APP_URL . '/admin/recipes.php');
+    exit;
+}
+
+$recipes = $recipeObject->getAllForAdmin();`)
+  },
+  {
+    title: "admin/comments.php",
+    html: code("php", `$commentObject = new Comment($databaseConnection);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $commentId = (int) $_POST['id'];
+    $commentAction = $_POST['action'];
+
+    if ($commentAction === 'approve') $commentObject->updateStatus($commentId, 'approved');
+    if ($commentAction === 'reject') $commentObject->updateStatus($commentId, 'rejected');
+    if ($commentAction === 'delete') $commentObject->delete($commentId);
+
+    header('Location: ' . APP_URL . '/admin/comments.php');
+    exit;
+}
+
+$comments = $commentObject->getAll();`)
   },
   {
     title: "Approval Workflow",
@@ -1279,6 +2247,20 @@ pending -> rejected`)}${callout("Approval membuat aplikasi lebih aman dan rapi. 
       "admin approve",
       "komentar tampil"
     ])}${callout("Komentar dari user juga perlu diperiksa.")}`
+  },
+  {
+    title: "Test End-to-End Working Site",
+    html: `${ordered([
+      "Buka homepage dan pastikan header/footer tampil.",
+      "Login sebagai <code>admin</code> dari seed admin.",
+      "Approve user baru dari <code>/admin/users.php</code>.",
+      "Login sebagai user approved.",
+      "Submit resep dari <code>/user/new-recipe.php</code>.",
+      "Approve resep dari <code>/admin/recipes.php</code>.",
+      "Pastikan resep tampil di homepage dan <code>recipe.php</code>.",
+      "Submit komentar, approve komentar, lalu pastikan komentar tampil."
+    ])}${callout("Kalau semua langkah ini berhasil, aplikasi sudah bukan hanya layout: sudah menjadi website PHP/MySQL yang bekerja.")}
+    `
   },
   {
     className: "chapter",
@@ -1308,12 +2290,27 @@ echo htmlspecialchars($comment['body'], ENT_QUOTES, 'UTF-8');`)}${callout("Ini m
   },
   {
     title: "Apa Itu SQL Injection?",
-    html: `${code("php", `$sql = "SELECT * FROM users WHERE username = '$username'";`)}${code("text", "' OR '1'='1")}${callout("User jahat bisa menyisipkan SQL ke dalam input.")}`
+    html: `${code("php", `$unsafeLoginQuery = "SELECT * FROM users WHERE username = '$username'";`)}${code("text", "' OR '1'='1")}${callout("User jahat bisa menyisipkan SQL ke dalam input.")}`
   },
   {
     title: "Mencegah SQL Injection",
-    html: `${code("php", `$stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
-$stmt->execute([$username]);`)}${callout("Prepared statement memisahkan perintah SQL dari input user.")}`
+    html: `${code("php", `$userLookupStatement = $databaseConnection->prepare("SELECT * FROM users WHERE username = ?");
+$userLookupStatement->execute([$username]);`)}${callout("Prepared statement memisahkan perintah SQL dari input user.")}`
+  },
+  {
+    title: "Password Security di Login",
+    html: `${code("php", `$passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+if (password_verify($password, $user['password_hash'])) {
+    $_SESSION['user_id'] = $user['id'];
+}`)}${callout("Kita tidak pernah menyimpan password asli. Yang disimpan adalah hash, lalu login memakai <code>password_verify()</code>.")}
+    `
+  },
+  {
+    title: "Redirect Harus Diikuti exit",
+    html: `${code("php", `header('Location: ' . APP_URL . '/login.php');
+exit;`)}${callout("Setelah mengirim redirect, gunakan <code>exit</code> supaya kode di bawahnya tidak lanjut berjalan.")}
+    `
   },
   {
     title: "URL yang Aman",
@@ -1351,8 +2348,23 @@ $stmt->execute([$username]);`)}${callout("Prepared statement memisahkan perintah
 |   +-- my-recipes.php
 |   +-- profile.php
 +-- includes/
+|   +-- config.php
+|   +-- bootstrap.php
+|   +-- header.php
+|   +-- footer.php
 +-- classes/
+|   +-- Database.php
+|   +-- Validator.php
+|   +-- User.php
+|   +-- Auth.php
+|   +-- Category.php
+|   +-- Recipe.php
+|   +-- Comment.php
 +-- assets/
+|   +-- css/
+|   |   +-- style.css
+|   +-- js/
+|       +-- app.js
 +-- uploads/
 +-- security-lab/`)
   },
@@ -1422,6 +2434,10 @@ const storyNotes = [
   "Non-functional requirement adalah aturan kualitas: aman, sederhana, rapi, dan mudah dipahami.",
   "Sekarang kita masuk dapur praktik. Kita mulai dari meja, alat, dan folder sebelum membuat fitur besar.",
   "Di XAMPP, folder <code>htdocs</code> seperti etalase lokal. Apa yang kita taruh di sana bisa dibuka lewat localhost.",
+  "Sebelum mengetik banyak file, kita lihat dulu rumah akhirnya. Dengan peta ini, murid tahu kenapa folder admin, user, includes, dan classes muncul.",
+  "Saat browser membuka index, sebenarnya ada rangkaian kecil di belakang layar: bootstrap menyiapkan aplikasi, header membuka tampilan, lalu isi halaman dan footer tampil.",
+  "Pola halaman ini akan berulang terus. Kalau murid hafal pola ini, file baru tidak terasa asing lagi.",
+  "Kita pisahkan tanggung jawab. Header bukan tempat menyalakan database; halaman memanggil bootstrap dulu, baru memanggil header untuk tampilan.",
   "Struktur folder seperti rak dapur. Kalau alat diletakkan rapi, kita tidak bingung saat mencari.",
   "PHP bekerja di belakang layar. Browser melihat hasil HTML, tetapi PHP yang membantu menyiapkan isinya.",
   "PHP dan HTML bisa bekerja dalam satu halaman: HTML membuat bentuk, PHP mengisi bagian yang berubah.",
@@ -1442,8 +2458,12 @@ const storyNotes = [
   "Sekarang kita isi lemari data dengan table yang sesuai cerita aplikasi.",
   "Table users menyimpan kartu anggota: username, email, password aman, role, dan status.",
   "Table categories menyimpan rak kategori resep, seperti Breakfast, Lunch, Dinner, dan Dessert.",
+  "Seed categories memberi data awal supaya form resep nanti langsung punya pilihan.",
   "Table recipes adalah tempat kartu resep utama disimpan.",
   "Table comments menyimpan percakapan di bawah resep.",
+  "Setelah table dibuat, kita cek di phpMyAdmin. Jangan lanjut kalau pondasi database belum benar.",
+  "Admin pertama kita buat lewat file lokal sementara. Ini jalan masuk awal supaya fitur approval bisa dicoba.",
+  "Setelah admin berhasil dibuat, file seed harus dihapus. Ini kebiasaan aman sejak awal.",
   "",
   "Sebelum menulis class besar, kita kenali dulu bentuk dasarnya. Class di PHP adalah cetakan yang ditulis dengan kata class.",
   "Property adalah data di dalam class. Seperti cetakan kue punya bahan dan bentuk, class punya property untuk menyimpan ciri.",
@@ -1451,27 +2471,72 @@ const storyNotes = [
   "Method adalah aksi di dalam class. Setelah object dibuat, kita bisa memanggil aksinya dengan tanda panah.",
   "Folder classes seperti kotak alat khusus. Setiap class memegang satu pekerjaan.",
   "Database class menjadi petugas pembuka pintu ke MySQL.",
+  "Nama seperti DB_HOST datang dari config. Kita sengaja menaruh alamat penting di satu tempat supaya class tidak penuh angka dan string yang tersebar.",
+  "Kita bisa saja require config langsung di class, tapi untuk latihan ini bootstrap menjadi pintu masuk utama. Ia menyiapkan lingkungan aplikasi, lalu class tinggal bekerja sesuai tugasnya.",
+  "Di constructor, koneksi disiapkan saat object dibuat. DSN adalah alamat lengkapnya, lalu PDO membuka jalur ke MySQL.",
+  "PDO adalah alat standar PHP untuk berbicara dengan database. Setelah object PDO jadi, query SQL nanti lewat jalur ini.",
+  "Error mode exception membuat masalah database muncul jelas. Kalau ada query rusak, kita ingin tahu segera, bukan gagal diam-diam.",
+  "Fetch mode associative membuat hasil query enak dibaca: kita mengambil data dengan nama column, seperti title dan description.",
+  "getConnection mengembalikan koneksi yang sudah dibuat, supaya class lain bisa memakai database tanpa membuat koneksi baru sendiri.",
   "Bootstrap sekarang lebih rapi karena meminta koneksi lewat class Database.",
+  "Versi akhir bootstrap juga mengenalkan semua class utama. Dengan begitu halaman tidak perlu require class satu per satu terlalu sering.",
+  "Constructor injection berarti class menerima koneksi dari luar. Satu PDO dari bootstrap dipakai bersama.",
   "Validator seperti penjaga pintu form. Ia mengecek apakah data masuk akal sebelum diterima.",
+  "User class memegang urusan data user: mencari username dan membuat akun baru.",
+  "Admin juga butuh mengubah status, role, dan menghapus user. Itu tetap kita taruh di User class.",
   "Category class mengurus rak kategori resep.",
+  "Karena admin mengelola kategori, class Category perlu method create, update, dan delete.",
   "Recipe class mengurus kartu resep: mengambil, membuat, menyetujui, atau menolak.",
+  "Statement adalah object query yang sudah disiapkan. Nama stmt hanya singkatan; untuk belajar, statement lebih mudah dibaca.",
+  "Prepared statement punya urutan: prepare, bind value bila perlu, execute, lalu fetch hasilnya.",
+  "Halaman detail dan kategori butuh cara mengambil resep yang sudah approved.",
+  "Submit resep masuk sebagai pending. Method create menyimpan data, method updateStatus dipakai admin.",
+  "Dashboard user perlu melihat resep miliknya sendiri, jadi Recipe punya method getByUser.",
+  "Admin membutuhkan daftar semua resep, termasuk pending dan rejected. Query itu tetap kita bungkus di Recipe class.",
+  "Comment class mengambil komentar approved untuk halaman detail resep.",
+  "Komentar baru juga pending. Admin nanti memutuskan komentar mana yang tampil.",
   "Homepage dinamis artinya kartu resep tidak ditulis manual lagi, tetapi diambil dari database.",
+  "Halaman detail mengambil id dari URL, lalu mencari resep approved yang sesuai.",
+  "Setelah resep ditemukan, kita tampilkan isi dengan escape output supaya aman.",
+  "Form komentar memakai login protection. User harus login sebelum komentarnya disimpan.",
+  "Halaman kategori memakai category_id dari URL untuk memfilter resep.",
   "Register adalah proses membuat kartu anggota baru.",
   "Saat register, password tidak disimpan apa adanya. Kita ubah menjadi bentuk hash yang aman.",
+  "File register memvalidasi input dulu. Kalau aman, baru panggil User::register.",
+  "Form register sederhana saja: username, email, password, dan daftar error bila ada.",
   "Login adalah mencocokkan kartu anggota dan password, lalu memastikan statusnya sudah approved.",
   "Auth class adalah petugas keamanan pintu masuk.",
+  "Auth juga menyediakan requireLogin dan requireAdmin supaya halaman terlindungi dengan satu baris jelas.",
+  "Login page menerima POST, memanggil Auth::login, lalu redirect jika berhasil.",
+  "Form login tidak rumit. Yang penting username dan password dikirim lewat POST.",
+  "Logout menghancurkan session, lalu mengirim user kembali ke homepage.",
   "Melindungi halaman seperti memasang tanda: hanya user login atau admin yang boleh masuk.",
   "Dashboard adalah meja kerja user setelah berhasil masuk.",
+  "Dashboard memanggil requireLogin, lalu mengambil resep milik user dari session user_id.",
+  "My recipes menampilkan status resep supaya user tahu apakah resepnya masih pending atau sudah approved.",
   "Form resep adalah kartu kosong yang diisi user sebelum dikirim ke admin.",
+  "Saat form resep dikirim, kita validasi judul, siapkan slug sederhana, lalu simpan sebagai pending.",
+  "Form resep mengambil kategori dari database, bukan menulis option manual.",
+  "Profile sederhana dulu: tampilkan username dan role dari session.",
   "Admin panel adalah meja pemeriksaan konten.",
+  "Admin dashboard menjadi pintu ke halaman users, categories, recipes, dan comments.",
+  "Halaman users membaca action dari tombol POST: approve, reject, make admin, atau delete.",
+  "Table users menaruh beberapa tombol dalam satu form kecil per baris.",
+  "Halaman categories memakai pola CRUD sederhana: create, update, delete dalam satu file.",
+  "Form kategori dibuat langsung di halaman yang sama supaya alurnya mudah diikuti.",
+  "Halaman recipes menjadi meja approval resep: approve, reject, atau delete.",
+  "Halaman comments memakai pola yang sama untuk komentar.",
   "Status pending, approved, dan rejected membantu semua orang tahu posisi data.",
   "Komentar juga bagian dari galeri. Karena ditulis user, komentar perlu dijaga.",
+  "Tes end-to-end membuktikan semua bagian terhubung: register, approve user, submit resep, approve resep, komentar, approve komentar.",
   "Security dimulai dari kebiasaan sederhana: jangan percaya input mentah.",
   "Validasi mengecek apakah data masuk akal sebelum masuk ke database.",
   "Escape output membuat tulisan user aman saat tampil di browser.",
   "XSS seperti menyelipkan kertas berisi perintah aneh ke papan komentar. Browser bisa tertipu kalau kita tidak hati-hati.",
   "SQL Injection seperti user mencoba bicara langsung ke lemari database dengan kalimat berbahaya.",
   "Prepared statement membuat input user tetap menjadi data, bukan berubah menjadi perintah SQL.",
+  "Password security punya dua sisi: hash saat register, verify saat login.",
+  "Setelah redirect, hentikan script dengan exit supaya tidak ada kode lanjutan yang ikut berjalan.",
   "Slug adalah nama jalan yang rapi untuk sebuah resep.",
   "Security lab adalah tempat latihan aman. Kita melihat contoh buruk hanya di lokal supaya tahu cara memperbaikinya.",
   "Di akhir, bentuk project sudah seperti rumah lengkap: ruang publik, ruang user, ruang admin, classes, uploads, dan security lab.",
