@@ -507,6 +507,16 @@ body {
   outline: none;
 }
 
+.deck-index-link.is-current {
+  background: rgba(39, 199, 184, 0.14);
+  border-color: rgba(39, 199, 184, 0.62);
+  box-shadow: inset 4px 0 0 var(--future);
+}
+
+.deck-index-link.is-current .deck-index-title {
+  color: var(--accent-deep);
+}
+
 .deck-index-number {
   color: var(--future);
   font-weight: 800;
@@ -676,8 +686,11 @@ body {
 }
 
 .slide-footer {
+  align-items: center;
   bottom: 14px;
+  display: flex;
   font-size: 13px;
+  gap: 14px;
   opacity: 0.76;
   position: absolute;
   right: 24px;
@@ -685,12 +698,25 @@ body {
 }
 
 .slide-footer a {
+  align-items: center;
   color: var(--muted);
+  display: inline-flex;
+  gap: 5px;
   text-decoration: none;
 }
 
 .slide-footer a:hover {
   color: var(--future);
+}
+
+.slide-footer-icon {
+  fill: none;
+  height: 15px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 15px;
 }
 
 .reveal .slide-number {

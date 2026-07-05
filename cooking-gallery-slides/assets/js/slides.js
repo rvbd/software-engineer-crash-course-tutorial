@@ -3246,6 +3246,7 @@ const buildDeckIndex = () => {
     const linkButton = document.createElement("button");
     linkButton.className = "deck-index-link";
     linkButton.type = "button";
+    linkButton.dataset.slideIndex = String(index);
     linkButton.dataset.search = `${index + 1} ${slideTitle}`.toLowerCase();
     linkButton.innerHTML = `
       <span class="deck-index-number">${index + 1}</span>
@@ -3259,13 +3260,30 @@ const buildDeckIndex = () => {
     return linkButton;
   });
 
+  const updateActiveIndex = () => {
+    if (!window.Reveal?.getIndices) {
+      return;
+    }
+
+    const currentIndex = Reveal.getIndices().h;
+    slideLinks.forEach((linkButton, index) => {
+      const isActive = index === currentIndex;
+      linkButton.classList.toggle("is-current", isActive);
+      linkButton.setAttribute("aria-current", isActive ? "page" : "false");
+    });
+  };
+
   const openIndex = () => {
+    updateActiveIndex();
     indexPanel.classList.add("is-open");
     searchInput.value = "";
     slideLinks.forEach((linkButton) => {
       linkButton.style.display = "";
     });
     searchInput.focus();
+
+    const activeLink = indexList.querySelector(".deck-index-link.is-current");
+    activeLink?.scrollIntoView({ block: "center" });
   };
 
   function closeIndex() {
@@ -3294,6 +3312,11 @@ const buildDeckIndex = () => {
       closeIndex();
     }
   });
+
+  if (window.Reveal?.on) {
+    Reveal.on("ready", updateActiveIndex);
+    Reveal.on("slidechanged", updateActiveIndex);
+  }
 
   indexCard.append(indexHeader, searchInput, indexList);
   indexPanel.appendChild(indexCard);
